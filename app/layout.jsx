@@ -1,6 +1,6 @@
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
-import Providers from "./providers";
+import Providers from "./Providers";
 
 export const metadata = {
   title: "Create Next App",

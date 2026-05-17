@@ -9,8 +9,6 @@ import PhotoGallery from "@/components/PhotoGallery";
 import ScrollReveal from "@/components/ScrollReveal";
 import Testimonial from "@/components/Testimonial";
 import Header from "@/components/Header";
-import TrustSection from "@/components/TrustSection";
-import AdressSection from "@/components/AdressSection";
 
 const page = () => {
   return (
