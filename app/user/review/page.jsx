@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import api from "@/components/Api/publicApi";
+import api from "../../../components/Api/PrivateApi";
 import toast from "react-hot-toast";
 import { FaStar } from "react-icons/fa";
 

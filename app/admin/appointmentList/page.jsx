@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import api from "@/components/Api/PrivateApi";
+import api from "../../../components/Api/PrivateApi";
 
 export default function AdminAppointmentsPage() {
   const queryClient = useQueryClient();

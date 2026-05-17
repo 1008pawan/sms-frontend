@@ -11,9 +11,9 @@ import {
   GraduationCap,
   Info,
 } from "lucide-react";
-import api from "@/components/Api/PrivateApi";
-import ToggleDoctor from "@/components/admin/ToggleDoctor";
-import AddDoctorModal from "@/components/admin/AddDoctorModal";
+import api from "../../../components/Api/PrivateApi";
+import ToggleDoctor from "../../../components/admin/ToggleDoctor";
+import AddDoctorModal from "../../../components/admin/AddDoctorModal";
 import { useQuery } from "@tanstack/react-query";
 
 export default function AdminDoctorsPage() {

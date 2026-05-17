@@ -1,5 +1,5 @@
 "use client";
-import api from "@/components/Api/PrivateApi";
+import api from "../../components/Api/PrivateApi";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";

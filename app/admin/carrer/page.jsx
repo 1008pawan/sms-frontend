@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../../../components/Api/PrivateApi";
 import toast from "react-hot-toast";
 import { Trash2 } from "lucide-react";
-import PdfPreviewModal from "@/components/PdfPreviewModal";
+import PdfPreviewModal from "../../../components/PdfPreviewModal";
 
 const AdminCareerPage = () => {
   const queryClient = useQueryClient();

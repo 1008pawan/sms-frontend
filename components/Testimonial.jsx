@@ -8,7 +8,7 @@ import {
   BsQuote,
 } from "react-icons/bs";
 import { useQuery } from "@tanstack/react-query";
-import api from "@/components/Api/publicApi";
+import api from "../components/Api/PrivateApi";
 import { FaStar } from "react-icons/fa";
 
 export default function Page() {

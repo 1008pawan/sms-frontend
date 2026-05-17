@@ -1,6 +1,6 @@
 "use client";
 
-import api from "@/components/Api/PrivateApi";
+import api from "../../../components/Api/PrivateApi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";

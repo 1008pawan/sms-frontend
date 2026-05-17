@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { BsArrowRight, BsCheckCircleFill } from "react-icons/bs";
 
 import { FaBaby } from "react-icons/fa";
-import { GiBrain } from "react-icons/gi";
 import { MdOutlineScience } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 

@@ -1,14 +1,14 @@
 "use client";
 import React from "react";
-import Counting from "@/components/Counting";
-import Experts from "@/components/Experts";
-import Footer from "@/components/Footer";
-import HeroSection from "@/components/HeroSection";
-import OurSpecialized from "@/components/OurSpecialized";
-import PhotoGallery from "@/components/PhotoGallery";
-import ScrollReveal from "@/components/ScrollReveal";
-import Testimonial from "@/components/Testimonial";
-import Header from "@/components/Header";
+import Counting from "../components/Counting";
+import Experts from "../components/Experts";
+import Footer from "../components/Footer";
+import HeroSection from "../components/HeroSection";
+import OurSpecialized from "../components/OurSpecialized";
+import PhotoGallery from "../components/PhotoGallery";
+import ScrollReveal from "../components/ScrollReveal";
+import Testimonial from "../components/Testimonial";
+import Header from "../components/Header";
 
 const page = () => {
   return (

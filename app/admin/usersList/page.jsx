@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import api from "@/components/Api/PrivateApi";
+import api from "../../../components/Api/PrivateApi";
 
 export default function AdminUsersPage() {
   const [currentPage, setCurrentPage] = useState(1);

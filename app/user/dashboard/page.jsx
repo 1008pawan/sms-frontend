@@ -1,5 +1,5 @@
 "use client";
-import api from "@/components/Api/PrivateApi";
+import api from "../../../components/Api/PrivateApi";
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo, useState } from "react";
 

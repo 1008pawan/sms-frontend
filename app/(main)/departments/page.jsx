@@ -1,8 +1,8 @@
 "use client";
 
-import api from "@/components/Api/publicApi";
-import Header from "@/components/Header";
-import OurSpecialized from "@/components/OurSpecialized";
+import api from "../../../components/Api/publicApi";
+import Header from "../../../components/Header";
+import OurSpecialized from "../../../components/OurSpecialized";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";

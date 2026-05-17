@@ -1,5 +1,5 @@
 "use client";
-import api from "@/components/Api/publicApi";
+import api from "../../../components/Api/publicApi";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";

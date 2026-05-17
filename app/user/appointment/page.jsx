@@ -1,5 +1,5 @@
 "use client";
-import api from "@/components/Api/PrivateApi";
+import api from "../../../components/Api/PrivateApi";
 import { useMutation } from "@tanstack/react-query";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
