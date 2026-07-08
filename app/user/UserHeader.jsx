@@ -34,7 +34,7 @@ const UserHeader = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white">
+    <header className="fixed top-0 left-0 md:left-64 right-0 z-50 bg-white">
       <div className="px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         {/* Brand */}
         <div className="flex items-center gap-2">
@@ -50,13 +50,13 @@ const UserHeader = () => {
         </div>
 
         {/* Desktop Logout */}
-        <button
+        {/* <button
           onClick={handleLogout}
           className="hidden md:flex items-center cursor-pointer gap-2 px-4 py-2 text-sm text-red-600 bg-red-50 rounded-md hover:bg-red-100 font-semibold"
         >
           <FiLogOut size={16} />
           Logout
-        </button>
+        </button> */}
 
         {/* Mobile Menu Button */}
         <button

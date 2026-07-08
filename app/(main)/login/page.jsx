@@ -30,6 +30,10 @@ export default function LoginPage() {
   const userMutation = useMutation({
     mutationFn: userLogin,
     onSuccess: (data) => {
+      if (!data?.token) {
+        toast.error("Login failed. Please try again.");
+        return;
+      }
       localStorage.setItem("access_token", data.token);
       localStorage.setItem("role", "user");
       localStorage.setItem("user", JSON.stringify(data.user));
@@ -38,7 +42,8 @@ export default function LoginPage() {
       router.replace("/user/dashboard");
     },
     onError: (err) => {
-      toast.error(err?.response?.data?.message || "Login failed");
+      const message = err?.response?.data?.message || "Login failed";
+      toast.error(message);
     },
   });
 

@@ -14,16 +14,16 @@ export default function MainLayout({ children }) {
       router.replace("/login");
     } else {
       setChecked(true);
-    } 
+    }
   }, []);
 
   if (!checked) return null;
   return (
-    <div className="flex">
+    <div className="flex min-h-screen overflow-x-hidden">
       <UserSidebar />
-      <div className="md:ml-64 ml-0 w-full bg-slate-200 min-h-screen">
+      <div className="flex-1 md:ml-64 min-h-screen bg-slate-200 overflow-x-hidden">
         <UserHeader />
-        {children}
+        <div className="pt-14">{children}</div>
       </div>
     </div>
   );

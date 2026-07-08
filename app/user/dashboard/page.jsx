@@ -61,7 +61,7 @@ const page = () => {
       <div className="space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-600">
             <p className="text-sm font-medium text-gray-500">
               Total Appointments
             </p>
@@ -71,7 +71,7 @@ const page = () => {
             </h2>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-yellow-500">
             <p className="text-sm font-medium text-gray-500">
               Pending Appointments
             </p>
@@ -81,7 +81,7 @@ const page = () => {
             </h2>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-green-600">
             <p className="text-sm font-medium text-gray-500">
               Approved Appointments
             </p>
@@ -91,7 +91,7 @@ const page = () => {
             </h2>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-red-500">
             <p className="text-sm font-medium text-gray-500">
               Rejected Appointments
             </p>
@@ -118,8 +118,8 @@ const page = () => {
           </div>
 
           {/* Responsive Table */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
+          <div className="w-full overflow-x-auto">
+            <table className="w-full table-auto">
               <thead className="bg-gray-50">
                 <tr>
                   {[
@@ -132,10 +132,7 @@ const page = () => {
                     "Slot",
                     "Status",
                   ].map((head) => (
-                    <th
-                      key={head}
-                      className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500 whitespace-nowrap"
-                    >
+                    <th key={head} className="px-6 py-5 text-sm text-gray-600">
                       {head}
                     </th>
                   ))}

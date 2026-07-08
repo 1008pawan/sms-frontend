@@ -49,12 +49,13 @@ export default function AdminDoctorsPage() {
             Manage specialists, their profiles, and availability.
           </p>
         </div>
-        <button
+        
+        {/* <button
           onClick={() => setShowModal(true)}
           className="flex items-center md:gap-2 md:text-base text-xs md:h-13 h-10 bg-blue-600 hover:bg-blue-700 transition-all cursor-pointer text-white md:px-8 px-2 md:py-4 py-2 rounded-[1.5rem] font-bold shadow-xl shadow-blue-100 active:scale-95"
         >
           <Plus size={22} /><p>Add New Specialist</p>
-        </button>
+        </button> */}
       </div>
 
       {isLoading ? (
