@@ -30,20 +30,20 @@ export default function PublicDepartmentsPage() {
     queryFn: async () => {
       const res = await api.get("/admin/doctors/public/all");
 
-      const allDoctors = res.data.data;
+      const allDoctors = res.data?.data ?? [];
 
       const grouped = allDoctors.reduce((acc, doc) => {
-        const deptName = doc.department || "General";
-        const existingDept = acc.find((d) => d.name === deptName);
-        if (existingDept) {
-          existingDept.doctors.push(doc);
-        } else {
-          acc.push({
-            id: acc.length + 1,
-            name: deptName,
-            doctors: [doc],
-          });
-        }
+        const raw =
+          typeof doc.department === "object"
+            ? doc.department?.name
+            : doc.department;
+        const deptName = (raw || "").trim() || "General";
+
+        const existingDept = acc.find(
+          (d) => d.name.toLowerCase() === deptName.toLowerCase(),
+        );
+        if (existingDept) existingDept.doctors.push(doc);
+        else acc.push({ id: acc.length + 1, name: deptName, doctors: [doc] });
         return acc;
       }, []);
 
