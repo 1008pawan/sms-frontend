@@ -20,7 +20,7 @@ export const metadata = {
     type: "website",
     images: [
       {
-        url: "/images/og-banner.png",
+        url: `${SITE_URL}/images/og-banner.png`,
         width: 1200,
         height: 630,
         alt: "SMS Hospital building",
@@ -31,7 +31,7 @@ export const metadata = {
     card: "summary_large_image",
     title: TITLE,
     description: DESC,
-    images: ["/images/og-banner.png"],
+    images: [`${SITE_URL}/images/og-banner.png`],
   },
 };
 
