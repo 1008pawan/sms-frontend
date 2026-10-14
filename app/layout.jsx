@@ -2,7 +2,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import QueryProvider from "../app/Providers/QueryProvider";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://sms-frontend-xi-rosy.vercel.app/";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://sms-frontend-xi-rosy.vercel.app";
 const TITLE = "SMS Hospital | Gorakhpur";
 const DESC =
   "Gorakhpur's most trusted hospital, where advanced technology and expert specialists come together to provide world-class treatment.";
@@ -14,16 +14,16 @@ export const metadata = {
   openGraph: {
     title: TITLE,
     description: DESC,
-    url: "/",
+    url: SITE_URL,
     siteName: "SMS Hospital",
     locale: "en_IN",
     type: "website",
     images: [
       {
-        url: `${SITE_URL}/images/og-banner.png`,
+        url: "/images/og-banner.png",
         width: 1200,
         height: 630,
-        alt: "SMS Hospital building",
+        alt: "SMS Hospital",
       },
     ],
   },
@@ -31,7 +31,7 @@ export const metadata = {
     card: "summary_large_image",
     title: TITLE,
     description: DESC,
-    images: [`${SITE_URL}/images/og-banner.png`],
+    images: ["/images/og-banner.png"],
   },
 };
 
