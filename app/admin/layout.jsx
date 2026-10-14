@@ -32,7 +32,7 @@ export default function MainLayout({ children }) {
     <div className="flex">
       <AdminSidebar />
 
-      <div className="md:ml-64 ml-0 w-full bg-slate-200 min-h-screen">
+      <div className="min-w-0 flex-1 md:ml-64 bg-slate-200 min-h-screen">
         <AdminHeader />
         <main className="p-4">{children}</main>
       </div>

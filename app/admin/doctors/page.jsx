@@ -10,6 +10,8 @@ import {
   Award,
   GraduationCap,
   Info,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import api from "../../../components/Api/PrivateApi";
 import ToggleDoctor from "../../../components/admin/ToggleDoctor";
@@ -18,6 +20,10 @@ import { useQuery } from "@tanstack/react-query";
 
 export default function AdminDoctorsPage() {
   const [showModal, setShowModal] = useState(false);
+  const [editingDoctor, setEditingDoctor] = useState(null);
+
+  const IMG_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const {
     data: doctors,
@@ -34,8 +40,20 @@ export default function AdminDoctorsPage() {
     },
   });
 
-  const IMG_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const handleAdd = () => {
+    setEditingDoctor(null);
+    setShowModal(true);
+  };
+
+  const handleEdit = (doctor) => {
+    setEditingDoctor(doctor);
+    setShowModal(true);
+  };
+
+  const handleClose = () => {
+    setShowModal(false);
+    setEditingDoctor(null);
+  };
 
   return (
     <div className="py-4 min-h-screen">
@@ -49,7 +67,8 @@ export default function AdminDoctorsPage() {
             Manage specialists, their profiles, and availability.
           </p>
         </div>
-{/* 
+
+        {/*         
         <button
           onClick={() => setShowModal(true)}
           className="flex items-center md:gap-2 md:text-base text-xs md:h-13 h-10 bg-blue-600 hover:bg-blue-700 transition-all cursor-pointer text-white md:px-8 px-2 md:py-4 py-2 rounded-[1.5rem] font-bold shadow-xl shadow-blue-100 active:scale-95"
@@ -129,7 +148,9 @@ export default function AdminDoctorsPage() {
               <div className="mt-4 space-y-3">
                 <div className="flex items-center gap-3 text-sm text-slate-600 bg-blue-50/50 p-3 rounded-2xl border border-blue-50">
                   <Briefcase size={18} className="text-blue-500" />
-                  <span className="font-semibold text-xs">{doc.department}</span>
+                  <span className="font-semibold text-xs">
+                    {doc.department}
+                  </span>
                   <span className="ml-auto text-xs bg-white px-2 py-1 rounded-lg shadow-sm text-nowrap">
                     {doc.experience || "0"} Exp
                   </span>
@@ -170,6 +191,15 @@ export default function AdminDoctorsPage() {
                   <ToggleDoctor doctor={doc} />
                 </div>
               </div>
+
+              {/* <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => handleEdit(doc)}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600"
+                >
+                  <Pencil size={14} /> Edit
+                </button>
+              </div> */}
             </div>
           ))}
         </div>
@@ -183,7 +213,9 @@ export default function AdminDoctorsPage() {
         </div>
       )}
 
-      {showModal && <AddDoctorModal close={() => setShowModal(false)} />}
+      {showModal && (
+        <AddDoctorModal close={handleClose} editDoctor={editingDoctor} />
+      )}
     </div>
   );
 }

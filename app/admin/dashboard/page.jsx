@@ -7,7 +7,10 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  IndianRupee,
+  Wallet,
 } from "lucide-react";
+import Analytics from "components/Analytics";
 
 export default function Dashboard() {
   const { data, isLoading, isError } = useQuery({
@@ -18,6 +21,16 @@ export default function Dashboard() {
 
       const appointments = appointmentsRes.data.data;
 
+      // 👇 Paid appointments ka total revenue
+      const totalRevenue = appointments
+        .filter((a) => a.payment?.isPaid)
+        .reduce((sum, a) => sum + (a.payment?.amount || 0), 0);
+
+      // 👇 Pending payment count (extra useful)
+      const pendingPayments = appointments.filter(
+        (a) => !a.payment?.isPaid,
+      ).length;
+
       return {
         users: usersRes.data.data.length,
         appointmentsCount: appointments.length,
@@ -25,6 +38,8 @@ export default function Dashboard() {
         pending: appointments.filter((a) => a.status === "Pending").length,
         approved: appointments.filter((a) => a.status === "approved").length,
         rejected: appointments.filter((a) => a.status === "rejected").length,
+        totalRevenue,
+        pendingPayments,
       };
     },
   });
@@ -78,15 +93,26 @@ export default function Dashboard() {
       icon: XCircle,
       gradient: "from-red-500 to-rose-500",
     },
+    {
+      title: "Total Revenue",
+      value: `₹${(data.totalRevenue / 100).toLocaleString("en-IN")}`,
+      icon: IndianRupee,
+      gradient: "from-violet-500 to-purple-600",
+    },
+    {
+      title: "Pending Payments",
+      value: data.pendingPayments,
+      icon: Wallet,
+      gradient: "from-yellow-500 to-orange-500",
+    },
   ];
-
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       {/* ===== Section 1 ===== */}
       <div>
-        <h2 className="text-2xl font-bold mb-4">Appointment Summary</h2>
+        <h2 className="text-xl font-bold mb-4">Appointment Summary</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {stats.map((item, i) => {
             const Icon = item.icon;
             return (
@@ -110,9 +136,12 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* ===== Analytics ===== */}
+      <Analytics appointments={data.appointments} />
+
       {/* ===== Recent Appointments ===== */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Recent Appointments</h2>
+        <h2 className="text-xl font-semibold mb-3">Recent Appointments</h2>
 
         <div className="bg-white rounded-xl shadow divide-y divide-zinc-300">
           {data.appointments.slice(0, 3).map((a) => (
@@ -122,8 +151,15 @@ export default function Dashboard() {
             >
               <div>
                 <p className="font-medium">{a.patientName}</p>
-                <p className="text-sm text-zinc-500">{`Department : ${a.doctorId?.department || '_'}`}</p>
-                <p className="text-sm text-zinc-500">{`Doctor : ${a.doctorId?.name || '_'}`}</p>
+                <p className="text-sm text-zinc-500">{`Department : ${a.doctorId?.department || "_"}`}</p>
+                <p className="text-sm text-zinc-500">{`Doctor : ${a.doctorId?.name || "_"}`}</p>
+                <p
+                  className={`text-xs font-semibold ${a.payment?.isPaid ? "text-green-600" : "text-red-500"}`}
+                >
+                  {a.payment?.isPaid
+                    ? `Paid ₹${(a.payment.amount / 100).toFixed(2)}`
+                    : "Payment Pending"}
+                </p>
                 <p className="text-xs text-zinc-400">
                   {new Date(a.appointmentDate).toLocaleDateString()} - {a.slot}
                 </p>
@@ -135,8 +171,8 @@ export default function Dashboard() {
                   a.status === "approved"
                     ? "bg-green-100 text-green-600"
                     : a.status === "rejected"
-                    ? "bg-red-100 text-red-600"
-                    : "bg-orange-100 text-orange-600"
+                      ? "bg-red-100 text-red-600"
+                      : "bg-orange-100 text-orange-600"
                 }`}
               >
                 {a.status}

@@ -1,8 +1,10 @@
 import "./globals.css";
+import Script from "next/script";
 import { Toaster } from "react-hot-toast";
 import QueryProvider from "../app/Providers/QueryProvider";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://sms-frontend-xi-rosy.vercel.app";
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://sms-frontend-xi-rosy.vercel.app";
 const TITLE = "SMS Hospital | Gorakhpur";
 const DESC =
   "Gorakhpur's most trusted hospital, where advanced technology and expert specialists come together to provide world-class treatment.";
@@ -39,6 +41,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body suppressHydrationWarning>
+        {/* 👇 Razorpay script yaha lagao */}
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="lazyOnload"
+        />
+
         <QueryProvider>
           <Toaster position="top-right" />
           {children}

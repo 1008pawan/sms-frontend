@@ -56,7 +56,7 @@ const AdminHeader = () => {
           >
             {openOption ? <FiX size={22} /> : <FiMenu size={22} />}
           </button>
-          <h1 className="text-lg font-bold text-zinc-800">Admin Dashboard</h1>
+          <h1 className="text-lg font-bold text-zinc-800">Welcome Back</h1>
         </div>
 
         {/* Right */}
