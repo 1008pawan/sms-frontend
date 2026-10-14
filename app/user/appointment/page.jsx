@@ -6,7 +6,64 @@ import { useRouter } from "next/navigation";
 import React from "react";
 import toast from "react-hot-toast";
 import * as Yup from "yup";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+const DEPARTMENTS = [
+  "Neonatology & Pediatrician Department",
+  "General Medicine",
+  "Orthopedic Department",
+  "Surgery Department",
+  "Gynecology Department",
+  "Urology Department",
+  "Psychiatric Department",
+  "ENT Department",
+  "Pathology Department",
+  "Neurology",
+  "Cardiology",
+  "Dental Department",
+  "General Surgery",
+  "Pediatric Surgery",
+  "Gastro Surgery",
+];
+
+/* ---------- Local date helper (timezone-safe) ---------- */
+const getTodayLocal = () => {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+/* ---------- Slot generator (module-level, ek hi baar) ---------- */
+const generateSlots = () => {
+  const slots = [];
+  const startHour = 9;
+  const endHour = 18;
+  const interval = 10;
+
+  let totalMinutes = startHour * 60;
+  const endMinutes = endHour * 60;
+
+  while (totalMinutes < endMinutes) {
+    const hours24 = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    const period = hours24 >= 12 ? "PM" : "AM";
+    const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+    const paddedMinutes = minutes.toString().padStart(2, "0");
+
+    slots.push({
+      label: `${hours12}:${paddedMinutes} ${period}`,
+      minutes: totalMinutes,
+    });
+    totalMinutes += interval;
+  }
+
+  return slots;
+};
+
+const ALL_SLOTS = generateSlots();
 
 const AppointmentSchema = Yup.object().shape({
   patientName: Yup.string()
@@ -19,20 +76,23 @@ const AppointmentSchema = Yup.object().shape({
     .matches(/^[0-9]{10}$/, "Please enter a valid 10-digit phone number")
     .required("Phone number is required"),
 
-  department: Yup.string().required("Choose your department"),
+  department: Yup.string()
+    .oneOf(DEPARTMENTS, "Please choose a valid department")
+    .required("Choose your department"),
+
   doctorId: Yup.string().required("Please select a doctor"),
-  appointmentDate: Yup.date()
-    .required("Appointment date is required")
-    .typeError("Invalid date"),
 
   slot: Yup.string().required("Please select a time slot"),
+
+  appointmentDate: Yup.date()
+    .required("Appointment date is required")
+    .typeError("Invalid date")
+    .min(new Date(new Date().setHours(0, 0, 0, 0)), "Past date is not allowed"),
 });
 
 const page = () => {
   const router = useRouter();
   const [doctors, setDoctors] = useState([]);
-
-  const slots = ["10:00 AM", "12:30 PM", "04:00 PM", "06:30 PM"];
 
   const appointments = async (values) => {
     const res = await api.post("/appointment/create", values);
@@ -50,7 +110,7 @@ const page = () => {
 
     onError: (error) => {
       toast.error(
-        error.response?.data?.message || "Failed to book appointment"
+        error.response?.data?.message || "Failed to book appointment",
       );
     },
   });
@@ -70,33 +130,60 @@ const page = () => {
     },
   });
 
- useEffect(() => {
-  const department = appointmentformik.values.department;
+  /* ---------- Available slots (memoized) ---------- */
+  const slots = useMemo(() => {
+    const selectedDate = appointmentformik.values.appointmentDate;
+    if (!selectedDate) return ALL_SLOTS;
 
-  if (!department) {
-    setDoctors([]);
-    appointmentformik.setFieldValue("doctorId", "");
-    return;
-  }
+    const todayStr = getTodayLocal();
+    if (selectedDate !== todayStr) return ALL_SLOTS;
 
-  api
-    .get(`/admin/doctors?department=${department}`)   // ✅ FIXED URL
-    .then((res) => {
-      setDoctors(res.data.data);
-      appointmentformik.setFieldValue("doctorId", "");
-    })
-    .catch((err) => {
-      console.error("API Error:", err);
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes() + 15;
+
+    return ALL_SLOTS.filter((s) => s.minutes > currentMinutes);
+  }, [appointmentformik.values.appointmentDate]);
+
+  /* ---------- Fetch doctors by department ---------- */
+  useEffect(() => {
+    const department = appointmentformik.values.department;
+
+    if (!department) {
       setDoctors([]);
-    });
-}, [appointmentformik.values.department]);
+      appointmentformik.setFieldValue("doctorId", "");
+      return;
+    }
+
+    api
+      .get(`/admin/doctors`, { params: { department } })
+      .then((res) => {
+        setDoctors(res.data.data);
+        appointmentformik.setFieldValue("doctorId", "");
+      })
+      .catch((err) => {
+        console.error("API Error:", err);
+        setDoctors([]);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appointmentformik.values.department]);
+
+  /* ---------- Reset slot if invalid after date change ---------- */
+  useEffect(() => {
+    const selected = appointmentformik.values.slot;
+    if (!selected) return;
+
+    const stillValid = slots.some((s) => s.label === selected);
+    if (!stillValid) {
+      appointmentformik.setFieldValue("slot", "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appointmentformik.values.appointmentDate]);
 
   return (
     <div className="w-full shadow-md">
-      {/* Appointment Form */}
       <div className="p-3 md:p-8">
         <h2 className="text-3xl font-bold mb-6">Book Appointment</h2>
-        <div className="">
+        <div>
           <div className="rounded-xl bg-white p-8 md:p-10 shadow-xl inset-shadow-sm/30 border border-blue-100">
             <form
               onSubmit={appointmentformik.handleSubmit}
@@ -142,12 +229,12 @@ const page = () => {
                 >
                   Phone Number
                 </label>
-
                 <input
                   type="tel"
                   id="phone"
                   name="phone"
                   placeholder="+91 00000 00000"
+                  maxLength={10}
                   onChange={appointmentformik.handleChange}
                   value={appointmentformik.values.phone}
                   onBlur={appointmentformik.handleBlur}
@@ -158,7 +245,6 @@ const page = () => {
                       : "border-zinc-300"
                   }`}
                 />
-
                 {appointmentformik.errors.phone &&
                   appointmentformik.touched.phone && (
                     <p className="text-red-500 text-xs my-0.5">
@@ -175,7 +261,6 @@ const page = () => {
                 >
                   Department
                 </label>
-
                 <select
                   id="department"
                   name="department"
@@ -192,22 +277,12 @@ const page = () => {
                   <option value="" disabled>
                     Choose Dept...
                   </option>
-                  <option value="Neonatology & Pediatric Department">Neonatology & Pediatric Department</option>
-                  <option value="General Medicine">General Medicine</option>
-                  <option value="Orthopedic Department">Orthopedic Department</option>
-                  <option value="Surgery Department">Surgery Department</option>
-                  <option value="Gynecology Department">Gynecology Department</option>
-                  <option value="Urology Department">Urology Department</option>
-                  <option value="Psychiatric Department">Psychiatric Department</option>
-                  <option value="ENT Department">ENT Department</option>
-                  <option value="Pathology Department">Pathology Department</option>
-                  <option value="Neurology">Neurology</option>
-                  <option value="Cardiology">Cardiology</option>
-                  <option value="Dental Department">Dental Department</option>
-                  <option value="General Surgery">General Surgery</option>
-                  <option value="Pediatric Surgery">Pediatric Surgery</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
                 </select>
-
                 {appointmentformik.errors.department &&
                   appointmentformik.touched.department && (
                     <p className="text-red-500 text-xs my-0.5">
@@ -224,7 +299,6 @@ const page = () => {
                 >
                   Doctor
                 </label>
-
                 <select
                   id="doctorId"
                   name="doctorId"
@@ -240,14 +314,12 @@ const page = () => {
                   }`}
                 >
                   <option value="">Select Doctor</option>
-
                   {doctors.map((doc) => (
                     <option key={doc._id} value={doc._id}>
                       {doc.name}
                     </option>
                   ))}
                 </select>
-
                 {appointmentformik.errors.doctorId &&
                   appointmentformik.touched.doctorId && (
                     <p className="text-red-500 text-xs my-0.5">
@@ -269,7 +341,7 @@ const page = () => {
                   name="appointmentDate"
                   type="date"
                   required
-                  min={new Date().toISOString().split("T")[0]} // for block back date picker
+                  min={getTodayLocal()}
                   onChange={appointmentformik.handleChange}
                   value={appointmentformik.values.appointmentDate}
                   onBlur={appointmentformik.handleBlur}
@@ -289,40 +361,41 @@ const page = () => {
               </div>
 
               {/* Slots */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold uppercase mb-4">
-                  Available Slots
+              <div>
+                <label
+                  htmlFor="slot"
+                  className="block text-xs font-bold uppercase mb-2"
+                >
+                  Available Slot
                 </label>
-                <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+                <select
+                  id="slot"
+                  name="slot"
+                  value={appointmentformik.values.slot}
+                  onChange={appointmentformik.handleChange}
+                  onBlur={appointmentformik.handleBlur}
+                  disabled={!slots.length}
+                  className={`w-full rounded-xl border px-4 py-3 text-lg focus:ring-2 focus:ring-blue-500 outline-none ${
+                    appointmentformik.errors.slot &&
+                    appointmentformik.touched.slot
+                      ? "border-red-400"
+                      : "border-gray-300"
+                  }`}
+                >
+                  <option value="" disabled>
+                    {slots.length === 0
+                      ? "No slots available for today"
+                      : "Select a time slot"}
+                  </option>
                   {slots.map((slot) => (
-                    <label key={slot} className="cursor-pointer">
-                      <input
-                        type="radio"
-                        name="slot"
-                        value={slot}
-                        checked={appointmentformik.values.slot === slot}
-                        onChange={appointmentformik.handleChange}
-                        onBlur={appointmentformik.handleBlur}
-                        className="peer hidden"
-                      />
-                      <div
-                        className={`rounded-xl border font-semibold px-4 py-2 text-center
-                        peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600
-                        ${
-                          appointmentformik.errors.slot &&
-                          appointmentformik.touched.slot
-                            ? "border-red-400"
-                            : "border-zinc-300"
-                        }`}
-                      >
-                        {slot}
-                      </div>
-                    </label>
+                    <option key={slot.label} value={slot.label}>
+                      {slot.label}
+                    </option>
                   ))}
-                </div>
+                </select>
                 {appointmentformik.errors.slot &&
                   appointmentformik.touched.slot && (
-                    <p className="text-red-500 text-xs mt-2">
+                    <p className="text-red-500 text-xs my-0.5">
                       {appointmentformik.errors.slot}
                     </p>
                   )}

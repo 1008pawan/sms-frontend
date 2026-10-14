@@ -99,26 +99,29 @@ export default function PublicDepartmentsPage() {
             Medical Specialities
           </h2>
           <div className="flex flex-col gap-3">
-            {departments.map((dept) => (
-              <button
-                key={dept.id}
-                onClick={() => setActiveDeptId(dept.id)}
-                className={`flex items-center justify-between group text-left px-5 py-4 rounded-2xl transition-all duration-300 cursor-pointer ${
-                  activeDept?.id === dept.id
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-200 scale-[1.02]"
-                    : "hover:bg-white hover:shadow-md text-slate-600"
-                }`}
-              >
-                <span className="font-bold tracking-tight">{dept.name}</span>
-                <FaChevronRight
-                  className={`text-xs ${
+            {departments.map((dept) => {
+              const active = activeDept?.id === dept.id;
+              return (
+                <button
+                  key={dept.id}
+                  onClick={() => setActiveDeptId(dept.id)}
+                  className={`flex items-center justify-between text-xs group text-left px-5 py-4 rounded-2xl transition-all duration-300 cursor-pointer ${
                     activeDept?.id === dept.id
-                      ? "rotate-0"
-                      : "-rotate-45 opacity-0 group-hover:opacity-100 group-hover:rotate-0"
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-200 scale-[1.02]"
+                      : "hover:bg-white hover:shadow-md text-slate-600"
                   }`}
-                />
-              </button>
-            ))}
+                >
+                  <span className="font-bold tracking-tight">{dept.name}</span>
+                  <span
+                    className={`text-[11px] font-extrabold h-6 min-w-6 px-1.5 rounded-full flex items-center justify-center ${
+                      active ? "bg-blue-500" : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
+                    {dept.doctors.length}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </aside>
 

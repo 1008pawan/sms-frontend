@@ -9,6 +9,7 @@ import PhotoGallery from "../components/PhotoGallery";
 import ScrollReveal from "../components/ScrollReveal";
 import Testimonial from "../components/Testimonial";
 import Header from "../components/Header";
+import WhyChooseUs from "components/WhyChooseUs";
 
 const page = () => {
   return (
@@ -23,8 +24,11 @@ const page = () => {
       <ScrollReveal delay={0.2}>
         <OurSpecialized />
       </ScrollReveal>
-      <ScrollReveal delay={0.2}>
+      {/* <ScrollReveal delay={0.2}>
         <Experts />
+      </ScrollReveal> */}
+      <ScrollReveal delay={0.2}>
+        <WhyChooseUs />
       </ScrollReveal>
       {/* <ScrollReveal delay={0.2}>
         <TrustSection />

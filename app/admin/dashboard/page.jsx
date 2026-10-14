@@ -84,7 +84,7 @@ export default function Dashboard() {
     <div className="space-y-10">
       {/* ===== Section 1 ===== */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Appointment Summary</h2>
+        <h2 className="text-2xl font-bold mb-4">Appointment Summary</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {stats.map((item, i) => {

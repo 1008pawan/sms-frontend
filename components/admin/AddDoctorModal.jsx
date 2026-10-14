@@ -7,7 +7,7 @@ import { X, Upload, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const departmentOptions = [
-  "Neonatology & Pediatric Department",
+  "Neonatology & Pediatrician Department",
   "General Medicine",
   "Orthopedic Department",
   "Surgery Department",
@@ -21,6 +21,7 @@ const departmentOptions = [
   "Dental Department",
   "General Surgery",
   "Pediatric Surgery",
+  "Gastro Surgery"
 ];
 
 export default function AddDoctorModal({ close }) {

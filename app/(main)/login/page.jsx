@@ -1,6 +1,5 @@
 "use client";
 
-
 import React, { useState } from "react";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -12,7 +11,13 @@ import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 
 const UserLoginSchema = Yup.object({
-  phone: Yup.string().required("Phone Number is required"),
+  identifier: Yup.string()
+    .trim()
+    .required("Phone number or email is required")
+    .test("phone-or-email", "Enter a valid 10 digit phone or email", (v) => {
+      if (!v) return false;
+      return /^[0-9]{10}$/.test(v) || /^\S+@\S+\.\S+$/.test(v);
+    }),
   password: Yup.string().required("Password is required"),
 });
 
@@ -48,7 +53,7 @@ export default function LoginPage() {
   });
 
   const userFormik = useFormik({
-    initialValues: { phone: "", password: "" },
+    initialValues: { identifier: "", password: "" },
     validationSchema: UserLoginSchema,
     onSubmit: (values) => userMutation.mutate(values),
   });
@@ -137,19 +142,22 @@ export default function LoginPage() {
           {role === "user" && (
             <form onSubmit={userFormik.handleSubmit} className="space-y-4">
               <div className="mb-1">
-                <label className="font-semibold">Phone Number</label>
+                <label className="font-semibold">Phone or Email</label>
                 <input
-                  name="phone"
-                  value={userFormik.values.phone}
+                  name="identifier"
+                  value={userFormik.values.identifier}
                   onChange={userFormik.handleChange}
-                  placeholder="Enter your Phone Number"
+                  onBlur={userFormik.handleBlur}
+                  placeholder="Enter phone number or email"
+                  autoComplete="username"
                   className="w-full p-2 mt-1 rounded-lg border border-zinc-300"
                 />
-                {userFormik.touched.phone && userFormik.errors.phone && (
-                  <p className="text-sm text-red-500">
-                    {userFormik.errors.phone}
-                  </p>
-                )}
+                {userFormik.touched.identifier &&
+                  userFormik.errors.identifier && (
+                    <p className="text-sm text-red-500">
+                      {userFormik.errors.identifier}
+                    </p>
+                  )}
               </div>
 
               <div className="mb-0 text-end text-sm">

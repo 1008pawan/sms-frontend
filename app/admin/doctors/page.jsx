@@ -49,12 +49,13 @@ export default function AdminDoctorsPage() {
             Manage specialists, their profiles, and availability.
           </p>
         </div>
-        
-        {/* <button
+{/* 
+        <button
           onClick={() => setShowModal(true)}
           className="flex items-center md:gap-2 md:text-base text-xs md:h-13 h-10 bg-blue-600 hover:bg-blue-700 transition-all cursor-pointer text-white md:px-8 px-2 md:py-4 py-2 rounded-[1.5rem] font-bold shadow-xl shadow-blue-100 active:scale-95"
         >
-          <Plus size={22} /><p>Add New Specialist</p>
+          <Plus size={22} />
+          <p>Add New Specialist</p>
         </button> */}
       </div>
 
@@ -114,23 +115,22 @@ export default function AdminDoctorsPage() {
                   <h2 className="font-black text-xl text-slate-800 leading-tight group-hover:text-blue-600 transition-colors">
                     {doc.name}
                   </h2>
-                  <div className="flex items-center gap-1.5 text-blue-500 mt-2">
-                    <GraduationCap size={16} />
-                    <span className="text-xs font-bold uppercase tracking-wide">
-                      {doc.specialty || "General Medicine"}
-                    </span>
-                  </div>
-                  <p className="text-slate-400 text-xs font-bold mt-1 uppercase tracking-tighter">
-                    {doc.specialization || "Senior Consultant"}
-                  </p>
                 </div>
               </div>
+              <div className="flex items-center gap-1.5 text-blue-500 mt-4">
+                <span className="text-xs font-bold uppercase tracking-wide">
+                  {doc.specialty || "General Medicine"}
+                </span>
+              </div>
+              <p className="text-slate-400 text-xs font-bold mt-2 uppercase tracking-tighter">
+                {doc.specialization || "Senior Consultant"}
+              </p>
 
-              <div className="mt-8 space-y-3">
+              <div className="mt-4 space-y-3">
                 <div className="flex items-center gap-3 text-sm text-slate-600 bg-blue-50/50 p-3 rounded-2xl border border-blue-50">
                   <Briefcase size={18} className="text-blue-500" />
-                  <span className="font-bold">{doc.department}</span>
-                  <span className="ml-auto text-xs bg-white px-2 py-1 rounded-lg shadow-sm">
+                  <span className="font-semibold text-xs">{doc.department}</span>
+                  <span className="ml-auto text-xs bg-white px-2 py-1 rounded-lg shadow-sm text-nowrap">
                     {doc.experience || "0"} Exp
                   </span>
                 </div>
