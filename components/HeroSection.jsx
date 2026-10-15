@@ -48,7 +48,7 @@ const HeroSection = () => {
                 <div className="flex flex-nowrap md:gap-4 gap-2">
                   <a
                     href="/login"
-                    className="bg-darkNavy text-white rounded-full md:px-8 px-4 md:py-4 py-2 text-lg font-semibold
+                    className="bg-darkNavy text-white rounded-full md:px-8 px-4 md:py-4 py-2 text-xs md:text-lg font-semibold
                       transition-all duration-300  bg-gray-900 hover:bg-blue-500 text-blue-500 hover:-translate-y-0.5
                       hover:shadow-[0_10px_20px_rgba(13,110,253,0.2)] flex items-center"
                   >
@@ -60,7 +60,7 @@ const HeroSection = () => {
 
                   <button
                     onClick={() => setModal(true)}
-                    className="border-2 border-gray-800 text-gray-800 rounded-full md:px-8 px-4 md:py-4 py-2 text-lg
+                    className="border-2 border-gray-800 text-gray-800 rounded-full md:px-8 px-4 md:py-4 py-2 text-xs md:text-lg
                       font-semibold transition hover:bg-gray-900 hover:text-white flex items-center cursor-pointer"
                     data-bs-toggle="modal"
                     data-bs-target="#tourModal"

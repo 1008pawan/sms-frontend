@@ -90,7 +90,7 @@ const PhotoGallery = () => {
                   <button
                     key={filter}
                     onClick={() => setActiveFilter(filter)}
-                    className={`md:px-6 px-3 md:py-2 py-1.5 cursor-pointer rounded-full font-semibold text-sm transition-all shadow-sm ${
+                    className={`md:px-6 px-3 md:py-2 py-1.5 cursor-pointer rounded-full font-semibold text-xs md:text-sm transition-all shadow-sm ${
                       activeFilter === filter
                         ? "bg-blue-600 text-white shadow-blue-200 scale-105"
                         : "bg-white text-slate-500 hover:bg-blue-50"

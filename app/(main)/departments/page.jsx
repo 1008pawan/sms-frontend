@@ -86,6 +86,8 @@ export default function PublicDepartmentsPage() {
             onChange={(e) => setActiveDeptId(Number(e.target.value))}
             className="w-full border-0 bg-white shadow-sm rounded-xl px-4 py-3 text-slate-700 font-medium focus:ring-2 focus:ring-blue-500"
           >
+            <option value="">Select Department</option>
+
             {departments.map((dept) => (
               <option key={dept.id} value={dept.id}>
                 {dept.name}
@@ -95,27 +97,98 @@ export default function PublicDepartmentsPage() {
         </div>
 
         {/* ===== DESKTOP SIDEBAR ===== */}
-        <aside className="hidden md:block w-72 p-4 sticky top-[0px] h-screen overflow-y-auto border-r border-slate-200 bg-white/50 backdrop-blur-sm">
-          <h2 className="text-xs font-black uppercase tracking-[0.2em] mb-6 text-slate-400">
-            Medical Specialities
-          </h2>
-          <div className="flex flex-col gap-3">
+        <aside className="hidden md:flex flex-col w-72 sticky top-0 h-screen border-r border-slate-200 bg-white/70 backdrop-blur-md overflow-hidden">
+          {/* ============ HEADER ============ */}
+          <div className="px-5 pt-6 pb-4 shrink-0">
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/30">
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-sm font-black text-slate-800 tracking-tight">
+                  Specialities
+                </h2>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  {departments.length} Department
+                  {departments.length !== 1 && "s"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* ============ DIVIDER ============ */}
+          <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent mx-5 shrink-0" />
+
+          {/* ============ NAV LIST ============ */}
+          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5 scrollbar-thin">
             {departments.map((dept) => {
               const active = activeDept?.id === dept.id;
+
               return (
                 <button
                   key={dept.id}
                   onClick={() => setActiveDeptId(dept.id)}
-                  className={`flex items-center justify-between text-xs group text-left px-5 py-4 rounded-2xl transition-all duration-300 cursor-pointer ${
-                    activeDept?.id === dept.id
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-200 scale-[1.02]"
-                      : "hover:bg-white hover:shadow-md text-slate-600"
+                  className={`group relative w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-left transition-all duration-300 cursor-pointer overflow-hidden ${
+                    active
+                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 scale-[1.02]"
+                      : "text-slate-600 hover:bg-slate-50 hover:translate-x-0.5"
                   }`}
                 >
-                  <span className="font-bold tracking-tight">{dept.name}</span>
+                  {/* Active left indicator */}
+                  {active && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-7 rounded-r-full bg-white/80" />
+                  )}
+
+                  {/* Icon */}
+                  <div
+                    className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                      active
+                        ? "bg-white/20 backdrop-blur-sm"
+                        : "bg-slate-100 group-hover:bg-blue-50"
+                    }`}
+                  >
+                    <svg
+                      className={`w-4 h-4 ${
+                        active
+                          ? "text-white"
+                          : "text-slate-500 group-hover:text-blue-600"
+                      }`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
+                    </svg>
+                  </div>
+
+                  {/* Name */}
+                  <span className="flex-1 min-w-0 text-sm font-bold">
+                    {dept.name}
+                  </span>
+
+                  {/* Count Badge */}
                   <span
-                    className={`text-[11px] font-extrabold h-6 min-w-6 px-1.5 rounded-full flex items-center justify-center ${
-                      active ? "bg-blue-500" : "bg-slate-100 text-slate-500"
+                    className={`shrink-0 min-w-[26px] h-6 px-2 rounded-full text-[11px] font-black flex items-center justify-center transition-all ${
+                      active
+                        ? "bg-white text-blue-600"
+                        : "bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-700"
                     }`}
                   >
                     {dept.doctors.length}
@@ -123,7 +196,32 @@ export default function PublicDepartmentsPage() {
                 </button>
               );
             })}
-          </div>
+
+            {/* ============ EMPTY STATE ============ */}
+            {departments.length === 0 && (
+              <div className="px-4 py-8 text-center">
+                <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                  <svg
+                    className="w-5 h-5 text-slate-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                    />
+                  </svg>
+                </div>
+                <p className="text-xs font-semibold text-slate-400">
+                  No departments available
+                </p>
+              </div>
+            )}
+          </nav>
+
         </aside>
 
         {/* ===== DOCTORS LIST SECTION ===== */}

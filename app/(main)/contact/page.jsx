@@ -502,15 +502,15 @@ ${formData.message}`;
               viewport={{ once: true }}
               className="space-y-6"
             >
-              <div className="rounded-3xl overflow-hidden border border-slate-100 shadow-xl h-80 md:h-96 bg-slate-100">
+              <div className="rounded-3xl overflow-hidden border border-slate-100 shadow-xl h-80 md:h-130 bg-slate-100">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3561.6768157109876!2d83.39971531499999!3d26.760617983182574!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3991459cc30e5b2b%3A0x8c8b3cdc1e8b8b0a!2sSMS%20Hospital%20Gorakhpur!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3561.3780971529477!2d83.3715089145963!3d26.79608707029467!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x399145b0980ccc2d%3A0x832f772d32cada49!2sSuper%20Medical%20Speciality%20Hospital%20Pvt%20Ltd!5e0!3m2!1sen!2sin!4v1792062853754!5m2!1sen!2sin"
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
                   allowFullScreen=""
                   loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
+                  referrerPolicy="strict-origin-when-cross-origin"
                   title="SMS Hospital Location"
                 />
               </div>
