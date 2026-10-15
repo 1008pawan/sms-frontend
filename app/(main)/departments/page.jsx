@@ -80,7 +80,7 @@ export default function PublicDepartmentsPage() {
 
       <div className="flex flex-col md:flex-row">
         {/* ===== MOBILE DEPARTMENT SELECTOR ===== */}
-        <div className="md:hidden w-full px-4 pt-6">
+        <div className="md:hidden w-full px-4 py-6">
           <select
             value={activeDept?.id || ""}
             onChange={(e) => setActiveDeptId(Number(e.target.value))}
