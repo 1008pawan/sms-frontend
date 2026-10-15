@@ -5,7 +5,7 @@ import QueryProvider from "../app/Providers/QueryProvider";
 import ClientLoader from "./ClientLoader";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sms-frontend-xi-rosy.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://smshospitalgkp.vercel.app/";
 const TITLE = "SMS Hospital | Gorakhpur";
 const DESC =
   "Gorakhpur's most trusted hospital, where advanced technology and expert specialists come together to provide world-class treatment.";
