@@ -172,14 +172,14 @@ const OurSpecialized = () => {
             </motion.div>
           ))}
         </motion.div>
-
+{/* 
         <div className="flex justify-center mt-8">
           <a href="/departments">
             <button className="group flex items-center gap-2 px-6 py-3 bg-white cursor-pointer text-gray-700 font-semibold rounded-xl shadow-sm hover:bg-gray-50 hover:border-blue-400 hover:text-blue-600 transition-all duration-300 ease-in-out active:scale-95">
               <span>View More</span>
             </button>
           </a>
-        </div>
+        </div> */}
       </div>
 
       <AnimatePresence>
