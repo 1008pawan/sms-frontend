@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import api from "../components/Api/PrivateApi";
 import {
   FaStar,
   FaQuoteRight,
@@ -12,6 +11,7 @@ import {
 import { BsPatchCheckFill, BsPencilFill } from "react-icons/bs";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import api from "./Api/publicApi";
 
 export default function Page() {
   const [current, setCurrent] = useState(0);
