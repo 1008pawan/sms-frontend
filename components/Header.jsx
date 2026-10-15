@@ -79,10 +79,10 @@ const Header = () => {
               </div>
               <div className="leading-tight">
                 <p className="text-base md:text-lg font-black text-slate-800 tracking-tight">
-                  SMS Hospital
+                  SMS Hospital Pvt Ltd
                 </p>
                 <p className="text-[10px] md:text-2xs font-semibold text-slate-500 uppercase tracking-widest">
-                  Super Speciality
+                  Super Medical Speciality Hospital Pvt Ltd
                 </p>
               </div>
             </Link>
@@ -168,16 +168,6 @@ const Header = () => {
                 </Link>
               );
             })}
-
-            <button
-              onClick={() => {
-                setOpen(false);
-                setModal(true);
-              }}
-              className="w-full text-left px-4 py-3 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-all"
-            >
-              Career
-            </button>
 
             <div className="pt-3 mt-2 border-t border-slate-100 space-y-2">
               <a

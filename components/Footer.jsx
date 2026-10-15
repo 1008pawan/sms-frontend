@@ -79,10 +79,10 @@ const Footer = () => {
               </div>
               <div className="leading-tight">
                 <p className="text-lg font-black tracking-tight">
-                  SMS HOSPITAL
+                  SMS Hospital Pvt Ltd
                 </p>
                 <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
-                  Super Speciality
+                  Super Medical Speciality Hospital Pvt Ltd
                 </p>
               </div>
             </Link>
