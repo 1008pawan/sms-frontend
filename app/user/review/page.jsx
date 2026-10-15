@@ -43,7 +43,7 @@ const Review = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen md:p-14 p-4 pt-0">
+    <div className="flex justify-center items-center min-h-screen">
       <div
         className="bg-white rounded-xl p-8 w-full shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-zinc-200"
         onClick={(e) => e.stopPropagation()}

@@ -165,8 +165,8 @@ const Page = () => {
   }, [appointmentformik.values.appointmentDate]);
 
   return (
-    <div className="w-full shadow-md">
-      <div className="p-3 md:p-8">
+    <div className="w-full">
+      <div>
         <h2 className="text-3xl font-bold mb-6">Book Appointment</h2>
 
         {!createdAppointment ? (

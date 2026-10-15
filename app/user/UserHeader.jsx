@@ -1,23 +1,30 @@
 "use client";
 import api from "../../components/Api/PrivateApi";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import toast from "react-hot-toast";
-import { FiLogOut, FiMenu, FiX } from "react-icons/fi";
+import {
+  FiLogOut,
+  FiMenu,
+  FiUser,
+  FiChevronDown,
+  FiCalendar,
+} from "react-icons/fi";
 
-const UserHeader = () => {
+const pageTitles = {
+  "/user/dashboard": "Dashboard",
+  "/user/appointment": "Book Appointment",
+  "/user/profile": "My Profile",
+  "/user/review": "Reviews",
+};
+
+const UserHeader = ({ onMenuClick }) => {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-
-  const menuItems = [
-    { name: "Dashboard", href: "/user/dashboard" },
-    { name: "Appointments", href: "/user/appointment" },
-    { name: "Review", href: "/user/review" },
-    { name: "Profile", href: "/user/profile" },
-  ];
+  const dropdownRef = useRef(null);
 
   const { data: user } = useQuery({
     queryKey: ["profile"],
@@ -28,76 +35,139 @@ const UserHeader = () => {
   });
 
   const handleLogout = () => {
-    toast.success("Logout Successful!");
     localStorage.clear();
+    toast.success("Logout successful!");
     router.replace("/");
   };
 
+  // Close on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const pageTitle =
+    pageTitles[pathname] ||
+    Object.entries(pageTitles).find(([k]) =>
+      pathname?.startsWith(k + "/"),
+    )?.[1] ||
+    "Dashboard";
+
+  const initials = user?.fullName
+    ? user.fullName
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "U";
+
   return (
-    <header className="fixed top-0 left-0 md:left-64 right-0 z-50 bg-white">
-      <div className="px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-        {/* Brand */}
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-bold">
-            {user?.fullName?.charAt(0) || "U"}
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold">
-              {user?.fullName || "User"}
-            </h2>
-            <p className="text-xs text-gray-500">{user?.phone || ""}</p>
+    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200">
+      <div className="flex items-center justify-between px-4 md:px-6 h-16 gap-3">
+        {/* Left */}
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <button
+            onClick={onMenuClick}
+            className="md:hidden p-2 rounded-xl hover:bg-slate-100 transition text-slate-700 shrink-0"
+            aria-label="Open menu"
+          >
+            <FiMenu size={22} />
+          </button>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
+              <span>User</span>
+              <span>/</span>
+              <span className="text-slate-600 truncate">{pageTitle}</span>
+            </div>
+            <h1 className="text-base md:text-lg font-black text-slate-800 truncate leading-tight">
+              {pageTitle}
+            </h1>
           </div>
         </div>
 
-        {/* Desktop Logout */}
-        {/* <button
-          onClick={handleLogout}
-          className="hidden md:flex items-center cursor-pointer gap-2 px-4 py-2 text-sm text-red-600 bg-red-50 rounded-md hover:bg-red-100 font-semibold"
-        >
-          <FiLogOut size={16} />
-          Logout
-        </button> */}
+        {/* Right */}
+        <div className="flex items-center gap-2 md:gap-3 shrink-0">
+          {/* Quick book button */}
+          {pathname !== "/user/appointment" && (
+            <Link
+              href="/user/appointment"
+              className="hidden md:inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95"
+            >
+              <FiCalendar size={14} />
+              Book Appointment
+            </Link>
+          )}
 
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setOpen(!open)}
-          className="md:hidden p-2 rounded-md hover:bg-gray-100 cursor-pointer"
-        >
-          {open ? <FiX size={22} /> : <FiMenu size={22} />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {open && (
-        <nav className="md:hidden bg-white px-4 py-3 space-y-2">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={`block px-4 py-2 rounded-md font-semibold text-center ${
-                  isActive
-                    ? "bg-blue-100 text-blue-700"
-                    : "hover:bg-gray-100 text-zinc-800"
+          {/* Profile dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setOpen((p) => !p)}
+              className="flex items-center gap-2 p-1.5 pr-3 rounded-xl hover:bg-slate-100 transition-all"
+            >
+              <div className="relative">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-md shadow-blue-500/30">
+                  {initials}
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" />
+              </div>
+              <div className="hidden md:flex flex-col items-start leading-tight">
+                <span className="text-sm font-bold text-slate-700 truncate max-w-[120px]">
+                  {user?.fullName || "User"}
+                </span>
+                <span className="text-[10px] text-slate-400">
+                  {user?.phone || ""}
+                </span>
+              </div>
+              <FiChevronDown
+                className={`hidden md:block text-slate-400 transition-transform ${
+                  open ? "rotate-180" : ""
                 }`}
-              >
-                {item.name}
-              </Link>
-            );
-          })}
+              />
+            </button>
 
-          <button
-            onClick={handleLogout}
-            className="w-full flex justify-center items-center gap-2 px-4 py-2 text-red-600 bg-red-50 rounded-md font-semibold hover:bg-red-100"
-          >
-            <FiLogOut size={16} />
-            Logout
-          </button>
-        </nav>
-      )}
+            {/* Dropdown */}
+            {open && (
+              <div className="absolute right-0 mt-2 w-60 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden py-1.5">
+                {/* User info */}
+                <div className="px-4 py-3 border-b border-slate-100">
+                  <p className="text-sm font-bold text-slate-800 truncate">
+                    {user?.fullName || "User"}
+                  </p>
+                  <p className="text-xs text-slate-400 truncate">
+                    {user?.phone || ""}
+                  </p>
+                </div>
+
+                <Link
+                  href="/user/profile"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors font-medium"
+                >
+                  <FiUser className="text-slate-400 w-4 h-4" />
+                  My Profile
+                </Link>
+
+                <div className="border-t border-slate-100 my-1" />
+
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors font-semibold"
+                >
+                  <FiLogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </header>
   );
 };

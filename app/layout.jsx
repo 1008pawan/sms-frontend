@@ -2,6 +2,7 @@ import "./globals.css";
 import Script from "next/script";
 import { Toaster } from "react-hot-toast";
 import QueryProvider from "../app/Providers/QueryProvider";
+import ClientLoader from "./ClientLoader";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://sms-frontend-xi-rosy.vercel.app";
@@ -41,7 +42,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-        {/* 👇 Razorpay script yaha lagao */}
+        {/* Razorpay script yaha lagao */}
         <Script
           src="https://checkout.razorpay.com/v1/checkout.js"
           strategy="lazyOnload"
@@ -49,7 +50,7 @@ export default function RootLayout({ children }) {
 
         <QueryProvider>
           <Toaster position="top-right" />
-          {children}
+          <ClientLoader>{children}</ClientLoader>
         </QueryProvider>
       </body>
     </html>

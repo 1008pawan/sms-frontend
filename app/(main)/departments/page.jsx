@@ -13,6 +13,7 @@ import {
   FaChevronRight,
   FaSpinner,
 } from "react-icons/fa";
+import Footer from "components/Footer";
 
 export default function PublicDepartmentsPage() {
   const [activeDeptId, setActiveDeptId] = useState(null);
@@ -312,6 +313,8 @@ export default function PublicDepartmentsPage() {
           </div>
         )}
       </AnimatePresence>
+
+      <Footer />
     </div>
   );
 }

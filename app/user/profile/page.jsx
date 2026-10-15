@@ -69,7 +69,7 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="p-6 md:p-10 min-h-screen">
+    <div className="min-h-screen">
       <h1 className="text-2xl font-bold mb-6">My Profile</h1>
 
       <div className="bg-white rounded-xl shadow-md p-6">

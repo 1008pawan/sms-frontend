@@ -2,13 +2,17 @@
 import api from "../../../components/Api/PrivateApi";
 import { useQuery } from "@tanstack/react-query";
 import RazorpayButton from "components/Payment/RazorpayButton";
+import PaymentDetailsModal from "components/PaymentDetailsModal";
 import React, { useState } from "react";
 
 const LIMIT = 10;
 
-const page = () => {
+const Page = () => {
   const [page, setPage] = useState(1);
   const [activeTab, setActiveTab] = useState("all");
+
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   const { data, isLoading, isFetching, error } = useQuery({
     queryKey: ["appointments", page],
@@ -30,7 +34,6 @@ const page = () => {
     rejected: 0,
   };
 
-  // Filter by tab (client-side on current page)
   const filteredAppointments =
     activeTab === "all"
       ? appointments
@@ -42,9 +45,9 @@ const page = () => {
   if (error) return <ErrorState />;
 
   return (
-    <div className="w-full p-4 md:p-8 min-h-screen">
+    <div className="w-full min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Page Header */}
+        {/* ==================== HEADER ==================== */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
@@ -54,14 +57,13 @@ const page = () => {
               Track and manage all your doctor consultations
             </p>
           </div>
-
           <div className="flex items-center gap-2 text-xs font-medium text-slate-500 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm w-fit">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             Live updates
           </div>
         </div>
 
-        {/* Stats Grid */}
+        {/* ==================== STATS ==================== */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
           <StatCard
             label="Total"
@@ -87,16 +89,15 @@ const page = () => {
             color="rose"
             icon={<XIcon />}
           />
-
           <StatCard
             label="Unpaid"
             value={unpaidCount}
-            color="amber"
+            color="orange"
             icon={<WalletIcon />}
           />
         </div>
 
-        {/* Main Card */}
+        {/* ==================== TABLE CARD ==================== */}
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
           {/* Header + Tabs */}
           <div className="px-6 py-5 border-b border-slate-100">
@@ -110,7 +111,6 @@ const page = () => {
                 </p>
               </div>
 
-              {/* Status Tabs */}
               <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl w-fit overflow-x-auto">
                 {[
                   { key: "all", label: "All" },
@@ -134,9 +134,9 @@ const page = () => {
             </div>
           </div>
 
-          {/* Table */}
+          {/* ==================== TABLE ==================== */}
           <div className="w-full overflow-x-auto">
-            <table className="w-full table-auto">
+            <table className="w-full min-w-[1100px]">
               <thead>
                 <tr className="bg-slate-50/80">
                   {[
@@ -153,7 +153,7 @@ const page = () => {
                   ].map((head) => (
                     <th
                       key={head}
-                      className="px-6 py-4 text-left text-[11px] font-black uppercase tracking-wider text-slate-500"
+                      className="px-6 py-4 text-left text-[11px] font-black uppercase tracking-wider text-slate-500 whitespace-nowrap"
                     >
                       {head}
                     </th>
@@ -166,7 +166,7 @@ const page = () => {
                   filteredAppointments.map((item, index) => (
                     <tr
                       key={item._id}
-                      className="hover:bg-blue-50/40 transition-colors group"
+                      className="hover:bg-blue-50/40 transition-colors"
                     >
                       <td className="px-6 py-4 text-sm font-bold text-slate-400">
                         {String((page - 1) * LIMIT + index + 1).padStart(
@@ -205,23 +205,17 @@ const page = () => {
                         <div className="text-sm font-semibold text-slate-700">
                           {new Date(item.appointmentDate).toLocaleDateString(
                             "en-IN",
-                            { day: "2-digit", month: "short", year: "numeric" },
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            },
                           )}
                         </div>
                       </td>
 
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md">
-                          <svg
-                            className="w-3.5 h-3.5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2.5}
-                          >
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="M12 6v6l4 2" />
-                          </svg>
                           {item.slot}
                         </div>
                       </td>
@@ -234,44 +228,47 @@ const page = () => {
                         <PaymentBadge payment={item.payment} />
                       </td>
 
+                      {/* ==================== ACTIONS ==================== */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {!item.payment?.isPaid && !item.payment?.isRefunded ? (
-                          <PayNowButton appointment={item} />
-                        ) : item.payment?.isRefunded ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-600">
-                            <svg
-                              className="w-3.5 h-3.5"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2.5}
+                        <div className="flex items-center gap-2">
+                          {/* Pay Now — if unpaid */}
+                          {!item.payment?.isPaid &&
+                            !item.payment?.isRefunded && (
+                              <PayNowButton appointment={item} />
+                            )}
+
+                          {/* Details — if paid OR refunded */}
+                          {(item.payment?.isPaid ||
+                            item.payment?.isRefunded) && (
+                            <button
+                              onClick={() => {
+                                setSelectedAppointment(item);
+                                setPaymentModalOpen(true);
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-lg transition active:scale-95 whitespace-nowrap"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-                              />
-                            </svg>
-                            Refunded
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
-                            <svg
-                              className="w-3.5 h-3.5"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={3}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                            Paid
-                          </span>
-                        )}
+                              <svg
+                                className="w-3.5 h-3.5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2.5}
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                              </svg>
+                              Details
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -310,7 +307,7 @@ const page = () => {
             </table>
           </div>
 
-          {/* Pagination */}
+          {/* ==================== PAGINATION ==================== */}
           {pagination && pagination.totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 border-t border-slate-100 bg-slate-50/50">
               <p className="text-sm text-slate-500">
@@ -375,18 +372,28 @@ const page = () => {
         </div>
       </div>
 
-      {/* Loading overlay for page transitions */}
+      {/* ==================== LOADING OVERLAY ==================== */}
       {isFetching && !isLoading && (
         <div className="fixed top-4 right-4 bg-blue-600 text-white text-xs font-bold px-3 py-2 rounded-full shadow-lg flex items-center gap-2 z-50">
           <div className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
           Loading...
         </div>
       )}
+
+      {/* ==================== PAYMENT DETAILS MODAL ==================== */}
+      <PaymentDetailsModal
+        open={paymentModalOpen}
+        onClose={() => {
+          setPaymentModalOpen(false);
+          setSelectedAppointment(null);
+        }}
+        appointment={selectedAppointment}
+      />
     </div>
   );
 };
 
-/* ================= Sub-components ================= */
+/* ==================== SUB-COMPONENTS ==================== */
 
 const StatCard = ({ label, value, color, icon }) => {
   const colors = {
@@ -480,7 +487,6 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-/* ================= Payment Badge ================= */
 const PaymentBadge = ({ payment }) => {
   const isPaid = payment?.isPaid;
   const isRefunded = payment?.isRefunded;
@@ -520,7 +526,7 @@ const PaymentBadge = ({ payment }) => {
   );
 };
 
-/* ================= Pay Now Button ================= */
+/* ==================== Pay Now Button ==================== */
 const PayNowButton = ({ appointment }) => {
   const [showPay, setShowPay] = useState(false);
 
@@ -539,7 +545,7 @@ const PayNowButton = ({ appointment }) => {
 
   return (
     <>
-      {/* ==================== TRIGGER BUTTON ==================== */}
+      {/* Trigger button */}
       <button
         onClick={() => setShowPay(true)}
         className="group relative inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600 hover:from-indigo-700 hover:via-blue-700 hover:to-indigo-700 text-white text-xs font-bold rounded-lg transition-all shadow-sm hover:shadow-lg hover:shadow-indigo-500/30 active:scale-95 overflow-hidden"
@@ -561,31 +567,24 @@ const PayNowButton = ({ appointment }) => {
         <span className="relative">Pay Now</span>
       </button>
 
-      <p className="text-2xl text-center font-black text-slate-900 mt-1">
-        ₹{fee.toLocaleString("en-IN")}
-      </p>
-
-      {/* ==================== MODAL ==================== */}
+      {/* Payment Modal */}
       {showPay && (
         <div
-          className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4"
           onClick={() => setShowPay(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200"
+            className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden"
           >
-            {/* ===== Gradient Header ===== */}
+            {/* Gradient Header */}
             <div className="relative bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 px-6 pt-6 pb-16 text-white overflow-hidden">
-              {/* Decorative circles */}
               <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10" />
               <div className="absolute -bottom-16 -left-10 w-48 h-48 rounded-full bg-white/10" />
 
-              {/* Close button */}
               <button
                 onClick={() => setShowPay(false)}
                 className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors backdrop-blur-sm z-10"
-                aria-label="Close"
               >
                 <svg
                   className="w-4 h-4"
@@ -628,7 +627,7 @@ const PayNowButton = ({ appointment }) => {
               </div>
             </div>
 
-            {/* ===== Amount Card (overlapping) ===== */}
+            {/* Amount Card */}
             <div className="relative px-6 -mt-12">
               <div className="bg-white rounded-2xl border border-slate-100 shadow-xl p-5">
                 <div className="flex items-center justify-between">
@@ -659,14 +658,13 @@ const PayNowButton = ({ appointment }) => {
               </div>
             </div>
 
-            {/* ===== Appointment Details ===== */}
+            {/* Appointment Details */}
             <div className="px-6 py-5">
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">
                 Appointment Details
               </p>
 
               <div className="space-y-3">
-                {/* Patient */}
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
                     <svg
@@ -693,7 +691,6 @@ const PayNowButton = ({ appointment }) => {
                   </div>
                 </div>
 
-                {/* Doctor */}
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
                     <svg
@@ -722,7 +719,6 @@ const PayNowButton = ({ appointment }) => {
                   </div>
                 </div>
 
-                {/* Date & Slot */}
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                     <svg
@@ -764,7 +760,7 @@ const PayNowButton = ({ appointment }) => {
               </div>
             </div>
 
-            {/* ===== Pay Button ===== */}
+            {/* Pay Button */}
             <div className="px-6 pb-6">
               <RazorpayButton
                 appointmentId={appointment._id}
@@ -779,7 +775,7 @@ const PayNowButton = ({ appointment }) => {
               />
             </div>
 
-            {/* ===== Footer ===== */}
+            {/* Footer */}
             <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-medium">
               <svg
                 className="w-3.5 h-3.5 text-emerald-600"
@@ -805,6 +801,7 @@ const PayNowButton = ({ appointment }) => {
   );
 };
 
+/* ==================== PAGINATION BUTTON ==================== */
 const PaginationButton = ({ children, disabled, onClick, ...rest }) => (
   <button
     disabled={disabled}
@@ -816,7 +813,6 @@ const PaginationButton = ({ children, disabled, onClick, ...rest }) => (
   </button>
 );
 
-/* ================= Pagination helper ================= */
 const getPageNumbers = (current, total) => {
   const delta = 1;
   const range = [];
@@ -845,7 +841,7 @@ const getPageNumbers = (current, total) => {
   return rangeWithDots;
 };
 
-/* ================= Icons ================= */
+/* ==================== ICONS ==================== */
 const CalendarIcon = () => (
   <svg
     className="w-5 h-5"
@@ -944,13 +940,13 @@ const WalletIcon = () => (
   </svg>
 );
 
-/* ================= Skeleton / Error ================= */
+/* ==================== SKELETON / ERROR ==================== */
 const AppointmentsSkeleton = () => (
   <div className="w-full p-4 md:p-8 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="h-10 w-64 bg-slate-200 rounded-xl animate-pulse" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+        {[...Array(5)].map((_, i) => (
           <div
             key={i}
             className="h-28 bg-white rounded-2xl border border-slate-100 animate-pulse"
@@ -982,4 +978,4 @@ const ErrorState = () => (
   </div>
 );
 
-export default page;
+export default Page;
