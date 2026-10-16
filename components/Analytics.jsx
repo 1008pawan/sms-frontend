@@ -21,6 +21,7 @@ import {
   RadialBar,
 } from "recharts";
 import api from "./Api/PrivateApi";
+import Link from "next/link";
 
 const COLORS = {
   indigo: "#6366f1",
@@ -502,19 +503,32 @@ export default function Analytics() {
 
       {/* ==================== KPI ROW ==================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        <KpiCard
-          label="Doctors"
-          value={totalDoctors}
-          color="emerald"
-          icon="🩺"
-        />
-        <KpiCard label="Reviews" value={totalReviews} color="amber" icon="⭐" />
-        <KpiCard
-          label="Careers"
-          value={totalCareers}
-          color="violet"
-          icon="💼"
-        />
+        <Link href="/admin/doctors">
+          <KpiCard
+            label="Doctors"
+            value={totalDoctors}
+            color="emerald"
+            icon="🩺"
+          />
+        </Link>
+
+        <Link href="/admin/reviews">
+          <KpiCard
+            label="Reviews"
+            value={totalReviews}
+            color="amber"
+            icon="⭐"
+          />
+        </Link>
+
+        <Link href="/admin/carrer">
+          <KpiCard
+            label="Careers"
+            value={totalCareers}
+            color="violet"
+            icon="💼"
+          />
+        </Link>
       </div>
 
       {/* ==================== ROW 8: REVENUE SUMMARY ==================== */}

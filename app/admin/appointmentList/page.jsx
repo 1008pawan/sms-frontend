@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
 import api from "../../../components/Api/PrivateApi";
 import Swal from "sweetalert2";
 
@@ -610,16 +609,21 @@ export default function AdminAppointmentsPage() {
   const rejectedAppointments = appointments.filter(
     (i) => i.status?.toLowerCase() === "rejected",
   ).length;
-
-  const paidAppointments = appointments.filter((a) => a.payment?.isPaid);
+  // 👇 Paid AND not refunded — actual revenue
+  const paidAppointments = appointments.filter(
+    (a) => a.payment?.isPaid && !a.payment?.isRefunded,
+  );
   const totalRevenue =
     paidAppointments.reduce((sum, a) => sum + (a.payment?.amount || 0), 0) /
     100;
+
+  // 👇 Pending revenue — unpaid appointments
   const pendingRevenue =
     appointments
       .filter((a) => !a.payment?.isPaid)
       .reduce((sum, a) => sum + (a.payment?.amount || 0), 0) / 100;
 
+  // 👇 Refunded count + amount
   const refundedCount = appointments.filter(
     (a) => a.payment?.isRefunded,
   ).length;
@@ -627,7 +631,10 @@ export default function AdminAppointmentsPage() {
   const refundedAmount =
     appointments
       .filter((a) => a.payment?.isRefunded)
-      .reduce((sum, a) => sum + (a.payment?.refundAmount || 0), 0) / 100;
+      .reduce(
+        (sum, a) => sum + (a.payment?.refundAmount || a.payment?.amount || 0),
+        0,
+      ) / 100;
 
   // ================= FILTERED DATA =================
   const filteredAppointments = useMemo(() => {

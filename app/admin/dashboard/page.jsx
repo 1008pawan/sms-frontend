@@ -23,7 +23,7 @@ export default function Dashboard() {
 
       // 👇 Paid appointments ka total revenue
       const totalRevenue = appointments
-        .filter((a) => a.payment?.isPaid)
+        .filter((a) => a.payment?.isPaid && !a.payment?.isRefunded)
         .reduce((sum, a) => sum + (a.payment?.amount || 0), 0);
 
       // 👇 Pending payment count (extra useful)
@@ -110,7 +110,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* ===== Section 1 ===== */}
       <div>
-        <h2 className="text-xl font-bold mb-4">Appointment Summary</h2>
+        <h2 className="text-xl font-bold mb-4">Admin Dashboard</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {stats.map((item, i) => {
