@@ -56,7 +56,7 @@ export default function AdminDoctorsPage() {
   };
 
   return (
-    <div className="py-4 min-h-screen">
+    <div className="min-h-screen">
       {/* Header Section */}
       <div className="flex justify-between items-center mb-10">
         <div>

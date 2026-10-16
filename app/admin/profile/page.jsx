@@ -12,7 +12,6 @@ const AdminProfilePage = () => {
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
-    newPassword: "",
   });
 
   /* ================= GET ADMIN PROFILE ================= */
@@ -29,7 +28,6 @@ const AdminProfilePage = () => {
       setFormData({
         fullName: admin.fullName ?? "",
         phone: admin.phone ?? "",
-        newPassword: "",
       });
     }
   }, [admin]);
@@ -41,12 +39,7 @@ const AdminProfilePage = () => {
       toast.success("Profile updated successfully");
       queryClient.invalidateQueries(["admin-profile"]);
       setIsEdit(false);
-      setFormData((prev) => ({
-        ...prev,
-        newPassword: "",
-      }));
     },
-
     onError: (err) => {
       toast.error(err.response?.data?.message || "Update failed");
     },
@@ -54,7 +47,6 @@ const AdminProfilePage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -66,7 +58,7 @@ const AdminProfilePage = () => {
   }
 
   return (
-    <div className="md:p-10 min-h-screen">
+    <div className="min-h-screen">
       <h1 className="text-2xl font-bold mb-6">Admin Profile</h1>
 
       <div className="bg-white rounded-xl shadow-md p-6 w-full">
@@ -83,30 +75,33 @@ const AdminProfilePage = () => {
 
         {/* Form */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <input
-            name="fullName"
-            value={formData.fullName ?? ""}
-            onChange={handleChange}
-            readOnly={!isEdit}
-            className="border border-zinc-200 px-3 py-2 rounded-md"
-          />
-
-          <input
-            value={admin.phone}
-            readOnly
-            className="border border-zinc-200 px-3 py-2 rounded-md bg-gray-100"
-          />
-
-          {isEdit && (
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">
+              Full Name
+            </label>
             <input
-              type="password"
-              name="newPassword"
-              value={formData.newPassword ?? ""}
+              name="fullName"
+              value={formData.fullName ?? ""}
               onChange={handleChange}
-              placeholder="New Password"
-              className="border border-zinc-200 px-3 py-2 rounded-md"
+              readOnly={!isEdit}
+              className={`border border-zinc-200 px-3 py-2 rounded-md w-full ${
+                !isEdit
+                  ? "bg-gray-50"
+                  : "bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+              }`}
             />
-          )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">
+              Phone
+            </label>
+            <input
+              value={admin.phone || ""}
+              readOnly
+              className="border border-zinc-200 px-3 py-2 rounded-md bg-gray-100 w-full cursor-not-allowed"
+            />
+          </div>
         </div>
 
         {/* Buttons */}
@@ -114,22 +109,28 @@ const AdminProfilePage = () => {
           {!isEdit ? (
             <button
               onClick={() => setIsEdit(true)}
-              className="px-5 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+              className="px-5 py-2 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer font-semibold transition"
             >
               Edit
             </button>
           ) : (
             <>
               <button
-                onClick={() => setIsEdit(false)}
-                className="px-5 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+                onClick={() => {
+                  setIsEdit(false);
+                  setFormData({
+                    fullName: admin.fullName ?? "",
+                    phone: admin.phone ?? "",
+                  });
+                }}
+                className="px-5 py-2 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer font-semibold transition"
               >
                 Cancel
               </button>
               <button
                 onClick={() => updateMutation.mutate(formData)}
                 disabled={updateMutation.isPending}
-                className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {updateMutation.isPending ? "Saving..." : "Save"}
               </button>

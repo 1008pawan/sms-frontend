@@ -88,7 +88,7 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="w-full max-w-full overflow-hidden p-4 md:p-6">
+    <div className="w-full max-w-full overflow-hidden">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-black text-zinc-800">Users</h1>
