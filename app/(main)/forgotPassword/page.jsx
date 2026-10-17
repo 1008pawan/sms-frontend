@@ -14,7 +14,7 @@ import {
   FaArrowLeft,
 } from "react-icons/fa";
 import * as Yup from "yup";
-import axios from "axios";
+import api from "components/Api/PrivateApi";
 
 const ResetPassword = () => {
   const router = useRouter();
@@ -46,7 +46,7 @@ const ResetPassword = () => {
   const sendOTPMutation = useMutation({
     mutationFn: async () => {
       if (!email) throw new Error("Email is required");
-      const { data } = await axios.post(`${API}/request-otp`, { email });
+      const { data } = await api.post(`${API}/request-otp`, { email });
       return data;
     },
     onSuccess: (data) => {
