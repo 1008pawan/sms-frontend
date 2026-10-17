@@ -12,14 +12,21 @@ import {
   FaLock,
   FaKey,
   FaArrowLeft,
+  FaEye,
+  FaEyeSlash, // 👈 Naya import
 } from "react-icons/fa";
 import * as Yup from "yup";
 import api from "components/Api/PrivateApi";
+import axios from "axios"; // 👈 MISSING THA, YE ZAROORI HAI
 
 const ResetPassword = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [showReset, setShowReset] = useState(false);
+
+  // 👇 Password visibility states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // 👇 Backend ki strict validation
   const validationSchema = Yup.object().shape({
@@ -82,12 +89,10 @@ const ResetPassword = () => {
     <div className="min-h-screen flex">
       {/* ==================== LEFT BRAND PANEL (Desktop) ==================== */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 overflow-hidden">
-        {/* Decorative blobs */}
         <div className="absolute top-0 -left-40 w-96 h-96 rounded-full bg-blue-500/20 blur-3xl" />
         <div className="absolute bottom-0 -right-40 w-96 h-96 rounded-full bg-indigo-500/20 blur-3xl" />
 
         <div className="relative flex flex-col justify-between p-12 w-full">
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group w-fit">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/40 group-hover:scale-110 transition-transform">
               <FaHeartbeat className="text-white text-xl" />
@@ -102,7 +107,6 @@ const ResetPassword = () => {
             </div>
           </Link>
 
-          {/* Content */}
           <div className="max-w-md">
             <h2 className="text-4xl font-black text-white leading-tight mb-4">
               Secure your account <br />
@@ -115,7 +119,6 @@ const ResetPassword = () => {
               below along with your new password to regain access.
             </p>
 
-            {/* Steps */}
             <div className="mt-10 space-y-4">
               {[
                 { n: 1, text: "Enter your registered email address" },
@@ -132,7 +135,6 @@ const ResetPassword = () => {
             </div>
           </div>
 
-          {/* Footer */}
           <p className="text-xs text-blue-300/60">
             © {new Date().getFullYear()} SMS Hospital. All rights reserved.
           </p>
@@ -142,7 +144,6 @@ const ResetPassword = () => {
       {/* ==================== RIGHT FORM PANEL ==================== */}
       <div className="flex-1 flex items-center justify-center p-4 sm:p-8 bg-slate-50">
         <div className="w-full max-w-md">
-          {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8">
             <Link href="/" className="flex items-center gap-2">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
@@ -154,9 +155,7 @@ const ResetPassword = () => {
             </Link>
           </div>
 
-          {/* Card */}
           <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8">
-            {/* Header */}
             <div className="mb-8 flex flex-col justify-center items-center">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 mb-5">
                 <FaLock className="text-white text-xl" />
@@ -164,14 +163,14 @@ const ResetPassword = () => {
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">
                 Forgot Password?
               </h1>
-              <p className="text-slate-500 text-sm mt-1.5">
+              <p className="text-slate-500 text-sm mt-1.5 text-center">
                 {showReset
                   ? "Enter the OTP sent to your email and set a new password."
                   : "No worries — enter your registered email and we'll send you an OTP."}
               </p>
             </div>
 
-            {/* PHONE/EMAIL FORM */}
+            {/* EMAIL FORM */}
             {!showReset && (
               <form
                 onSubmit={(e) => {
@@ -239,6 +238,7 @@ const ResetPassword = () => {
                       <input
                         name="otp"
                         inputMode="numeric"
+                        maxLength={6}
                         placeholder="Enter 6-digit OTP"
                         value={values.otp}
                         onChange={handleChange}
@@ -263,17 +263,25 @@ const ResetPassword = () => {
                       <div className="relative">
                         <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
                         <input
-                          type="password"
+                          type={showPassword ? "text" : "password"} // 👈 Toggle type
                           name="password"
-                          placeholder="At least 6 characters"
+                          placeholder="At least 8 characters"
                           value={values.password}
                           onChange={handleChange}
-                          className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none transition ${
+                          className={`w-full pl-11 pr-11 py-3 rounded-xl border outline-none transition ${
                             errors.password && touched.password
                               ? "border-rose-300 bg-rose-50/30 focus:border-rose-500"
                               : "border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                           }`}
                         />
+                        {/* 👇 EYE BUTTON */}
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                        >
+                          {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </button>
                       </div>
                       {errors.password && touched.password && (
                         <p className="text-rose-500 text-xs mt-1 font-medium">
@@ -290,17 +298,27 @@ const ResetPassword = () => {
                       <div className="relative">
                         <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
                         <input
-                          type="password"
+                          type={showConfirmPassword ? "text" : "password"} // 👈 Toggle type
                           name="confirm"
                           placeholder="Re-enter new password"
                           value={values.confirm}
                           onChange={handleChange}
-                          className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none transition ${
+                          className={`w-full pl-11 pr-11 py-3 rounded-xl border outline-none transition ${
                             errors.confirm && touched.confirm
                               ? "border-rose-300 bg-rose-50/30 focus:border-rose-500"
                               : "border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                           }`}
                         />
+                        {/* 👇 EYE BUTTON */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                        >
+                          {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                        </button>
                       </div>
                       {errors.confirm && touched.confirm && (
                         <p className="text-rose-500 text-xs mt-1 font-medium">
@@ -328,7 +346,6 @@ const ResetPassword = () => {
               </Formik>
             )}
 
-            {/* Back to Login */}
             <div className="mt-6 text-center">
               <Link
                 href="/login"
@@ -340,7 +357,6 @@ const ResetPassword = () => {
             </div>
           </div>
 
-          {/* Footer note */}
           <p className="text-center text-xs text-slate-400 mt-6">
             Your data is protected with industry-standard encryption.
           </p>
