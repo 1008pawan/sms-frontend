@@ -1,11 +1,20 @@
 "use client";
-import { ArrowLeft } from "lucide-react";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import api from "../../../components/Api/publicApi";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import React, { useState } from "react";
 import toast from "react-hot-toast";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  FaEye,
+  FaEyeSlash,
+  FaHeartbeat,
+  FaUser,
+  FaPhoneAlt,
+  FaEnvelope,
+  FaLock,
+  FaVenusMars,
+} from "react-icons/fa";
 
 const Signup = () => {
   const router = useRouter();
@@ -20,7 +29,6 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // flat object: { fullName: "...", phone: "...", email: "..." }
   const [errors, setErrors] = useState({});
 
   const signupUser = async (data) => {
@@ -35,7 +43,6 @@ const Signup = () => {
       router.push("/login");
     },
     onError: (error) => {
-      // backend ka errors object seedha flat state mein
       setErrors(error?.response?.data?.errors || {});
       toast.error(error?.response?.data?.message || "Account creation failed");
     },
@@ -89,164 +96,273 @@ const Signup = () => {
   };
 
   const inputCls = (field) =>
-    `w-full p-2 mt-1 rounded-lg border ${
-      errors[field] ? "border-red-500" : "border-zinc-300"
+    `w-full pl-11 pr-4 py-3 rounded-xl border outline-none transition ${
+      errors[field]
+        ? "border-rose-300 bg-rose-50/30 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20"
+        : "border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
     }`;
 
   const Err = ({ field }) =>
     errors[field] ? (
-      <p className="text-sm text-red-500">{errors[field]}</p>
+      <p className="text-rose-500 text-xs mt-1.5 font-medium">
+        {errors[field]}
+      </p>
     ) : null;
 
   return (
-    <>
-      <nav className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-zinc-200 py-2">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
-          {/* Brand */}
-          <a
-            href="/"
-            className="flex items-center gap-2 font-bold text-lg text-black"
-          >
+    <div className="min-h-screen flex">
+      {/* ==================== LEFT BRAND PANEL ==================== */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 overflow-hidden">
+        <div className="absolute top-0 -left-40 w-96 h-96 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="absolute bottom-0 -right-40 w-96 h-96 rounded-full bg-indigo-500/20 blur-3xl" />
+
+        <div className="relative flex flex-col justify-between p-12 w-full">
+          <Link href="/" className="flex items-center gap-3 group w-fit">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/40 group-hover:scale-110 transition-transform">
+              <FaHeartbeat className="text-white text-xl" />
+            </div>
             <div>
-              <img
-                src="/images/logo/logo.jpeg"
-                className="rounded-full h-13 w-13"
-                alt=""
-              />
+              <p className="text-white font-black text-lg tracking-tight">
+                SMS Hospital Pvt Ltd
+              </p>
+              <p className="text-[10px] text-blue-300 uppercase tracking-widest font-bold">
+                Super Medical Speciality Hospital Pvt Ltd
+              </p>
             </div>
-            SMS Hospital
-          </a>
+          </Link>
 
-          <button
-            onClick={() => router.push("/")}
-            className="bg-zinc-200 hover:bg-zinc-300 cursor-pointer p-2 px-3 rounded-lg flex justify-center items-center gap-2"
-          >
-            <ArrowLeft size={15} /> Back
-          </button>
-        </div>
-      </nav>
-
-      <div className="bg-blue-100 min-h-screen flex items-center justify-center">
-        <div className="w-full max-w-md py-6 rounded-2xl shadow-2xl bg-white">
-          <h1 className="text-3xl text-center font-bold mb-5">Signup</h1>
-
-          <form onSubmit={handleSubmit} className="px-8 space-y-3" noValidate>
-            {/* Full Name */}
-            <div>
-              <label className="font-semibold">Full Name</label>
-              <input
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className={inputCls("fullName")}
-                placeholder="Full Name"
-              />
-              <Err field="fullName" />
-            </div>
-
-            <div className="grid md:grid-cols-12 grid-cols-1 gap-3">
-              {/* Phone */}
-              <div className="md:col-span-7">
-                <label className="font-semibold">Phone Number</label>
-                <input
-                  value={phone}
-                  maxLength={10}
-                  inputMode="numeric"
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-                  className={inputCls("phone")}
-                  placeholder="Phone Number"
-                />
-                <Err field="phone" />
-              </div>
-
-              {/* Gender */}
-              <div className="md:col-span-5">
-                <label className="font-semibold">Gender</label>
-                <select
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                  className={inputCls("gender")}
-                >
-                  <option value="">Select gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
-                <Err field="gender" />
-              </div>
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="font-semibold">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={inputCls("email")}
-                placeholder="Email (used for password reset)"
-              />
-              <Err field="email" />
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="font-semibold">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={inputCls("password")}
-                  placeholder="Password"
-                />
-                <span
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
-              </div>
-              <Err field="password" />
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-              <label className="font-semibold">Confirm Password</label>
-              <div className="relative">
-                <input
-                  type={showCPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={inputCls("confirmPassword")}
-                  placeholder="Confirm Password"
-                />
-                <span
-                  onClick={() => setShowCPassword(!showCPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
-                >
-                  {showCPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
-              </div>
-              <Err field="confirmPassword" />
-            </div>
-
-            <button
-              disabled={isPending}
-              className="w-full py-2 text-lg font-semibold rounded-full bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-60"
-            >
-              {isPending ? "Creating..." : "Create Account"}
-            </button>
-
-            <p className="text-center text-sm">
-              Already have an account?{" "}
-              <a href="/login" className="text-blue-500 font-semibold">
-                Login
-              </a>
+          <div className="max-w-md">
+            <h2 className="text-4xl font-black text-white leading-tight mb-4">
+              Join Us for a <br />
+              <span className="bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-transparent">
+                Healthier Tomorrow.
+              </span>
+            </h2>
+            <p className="text-blue-100/80 leading-relaxed">
+              Create your account to book appointments, consult with top
+              specialists, and manage your health records — all in one place.
             </p>
-          </form>
+
+            {/* Benefits */}
+            <div className="mt-10 space-y-3">
+              {[
+                "Easy online appointment booking",
+                "Access to 50+ expert doctors",
+                "Secure medical records",
+              ].map((benefit, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0">
+                    <svg
+                      className="w-3 h-3 text-emerald-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-sm text-blue-100">{benefit}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-xs text-blue-300/60">
+            © {new Date().getFullYear()} SMS Hospital. All rights reserved.
+          </p>
         </div>
       </div>
-    </>
+
+      {/* ==================== RIGHT FORM PANEL ==================== */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 bg-slate-50">
+        <div className="w-full max-w-md my-8">
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex justify-center mb-8">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                <FaHeartbeat className="text-white text-lg" />
+              </div>
+              <span className="text-xl font-black text-slate-800">
+                SMS Hospital
+              </span>
+            </Link>
+          </div>
+
+          {/* Card */}
+          <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8">
+            <div className="mb-6 text-center">
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                Create Account
+              </h1>
+              <p className="text-slate-500 text-sm mt-1.5">
+                It only takes a minute to get started.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+              {/* Full Name */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                  <input
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className={inputCls("fullName")}
+                    placeholder="Enter your full name"
+                  />
+                </div>
+                <Err field="fullName" />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Phone */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Phone Number
+                  </label>
+                  <div className="relative">
+                    <FaPhoneAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                    <input
+                      value={phone}
+                      maxLength={10}
+                      inputMode="numeric"
+                      onChange={(e) =>
+                        setPhone(e.target.value.replace(/\D/g, ""))
+                      }
+                      className={inputCls("phone")}
+                      placeholder="9876543210"
+                    />
+                  </div>
+                  <Err field="phone" />
+                </div>
+
+                {/* Gender */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Gender
+                  </label>
+                  <div className="relative">
+                    <FaVenusMars className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                    <select
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}
+                      className={`${inputCls("gender")} cursor-pointer appearance-none`}
+                    >
+                      <option value="">Select gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <Err field="gender" />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={inputCls("email")}
+                    placeholder="you@example.com"
+                  />
+                </div>
+                <Err field="email" />
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                  Password
+                </label>
+                <div className="relative">
+                  <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={inputCls("password")}
+                    placeholder="Create a strong password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
+                <Err field="password" />
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                  <input
+                    type={showCPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className={inputCls("confirmPassword")}
+                    placeholder="Re-enter password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCPassword(!showCPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showCPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
+                <Err field="confirmPassword" />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isPending}
+                className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed mt-4"
+              >
+                {isPending ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
+              </button>
+
+              <p className="text-center text-sm text-slate-500 mt-6 pt-6 border-t border-slate-100">
+                Already have an account?{" "}
+                <Link
+                  href="/login"
+                  className="font-bold text-blue-600 hover:text-blue-700"
+                >
+                  Sign In
+                </Link>
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

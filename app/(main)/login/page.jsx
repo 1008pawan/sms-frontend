@@ -4,11 +4,20 @@ import React, { useState } from "react";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import toast from "react-hot-toast";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FaEye,
+  FaEyeSlash,
+  FaHeartbeat,
+  FaUser,
+  FaUserShield,
+  FaLock,
+  FaPhoneAlt,
+} from "react-icons/fa";
 import api from "../../../components/Api/publicApi";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
 
 const UserLoginSchema = Yup.object({
   identifier: Yup.string()
@@ -27,6 +36,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showCPassword, setShowCPassword] = useState(false);
 
+  /* ================= USER LOGIN ================= */
   const userLogin = async (values) => {
     const res = await api.post("/user/authenticate", values);
     return res.data;
@@ -42,7 +52,7 @@ export default function LoginPage() {
       localStorage.setItem("access_token", data.token);
       localStorage.setItem("role", "user");
       localStorage.setItem("user", JSON.stringify(data.user));
-      toast.success("User login successful");
+      toast.success("Welcome back!");
       userFormik.resetForm();
       router.replace("/user/dashboard");
     },
@@ -58,10 +68,8 @@ export default function LoginPage() {
     onSubmit: (values) => userMutation.mutate(values),
   });
 
-  const [adminData, setAdminData] = useState({
-    phone: "",
-    password: "",
-  });
+  /* ================= ADMIN LOGIN ================= */
+  const [adminData, setAdminData] = useState({ phone: "", password: "" });
   const [adminErrors, setAdminErrors] = useState({});
 
   const adminLogin = async (data) => {
@@ -85,6 +93,7 @@ export default function LoginPage() {
     },
     onError: (err) => {
       setAdminErrors(err?.response?.data || {});
+      toast.error(err?.response?.data?.message || "Admin login failed");
     },
   });
 
@@ -95,161 +104,310 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-blue-100 min-h-screen">
-      <nav className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-zinc-200 py-2">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
-          {/* Brand */}
-          <a
-            href="/"
-            className="flex items-center gap-2 font-bold text-lg text-black"
-          >
-            <div>
-              <img
-                src="/images/logo/logo.jpeg"
-                className="rounded-full h-13 w-13"
-                alt=""
-              />
+    <div className="min-h-screen flex">
+      {/* ==================== LEFT BRAND PANEL ==================== */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 overflow-hidden">
+        <div className="absolute top-0 -left-40 w-96 h-96 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="absolute bottom-0 -right-40 w-96 h-96 rounded-full bg-indigo-500/20 blur-3xl" />
+
+        <div className="relative flex flex-col justify-between p-12 w-full">
+          <Link href="/" className="flex items-center gap-3 group w-fit">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/40 group-hover:scale-110 transition-transform">
+              <FaHeartbeat className="text-white text-xl" />
             </div>
-            SMS Hospital
-          </a>
+            <div>
+              <p className="text-white font-black text-lg tracking-tight">
+                SMS Hospital Pvt Ltd
+              </p>
+              <p className="text-[10px] text-blue-300 uppercase tracking-widest font-bold">
+                Super Medical Speciality Hospital Pvt Ltd
+              </p>
+            </div>
+          </Link>
 
-          <button
-            onClick={() => router.push("/")}
-            className="bg-zinc-200 hover:bg-zinc-300 cursor-pointer p-2 px-3 rounded-lg flex justify-center items-center gap-2"
-          >
-            <ArrowLeft size={15} /> Back
-          </button>
-        </div>
-      </nav>
-      <div className="h-[90vh] flex items-center justify-center">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6">
-          <h1 className="text-3xl font-bold text-center mb-4">Login</h1>
+          <div className="max-w-md">
+            <h2 className="text-4xl font-black text-white leading-tight mb-4">
+              Your Health, <br />
+              <span className="bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-transparent">
+                Our Priority.
+              </span>
+            </h2>
+            <p className="text-blue-100/80 leading-relaxed">
+              Welcome back to SMS Hospital. Access your dashboard to book
+              appointments, view medical records, and connect with our
+              specialists.
+            </p>
 
-          <div className="flex mb-6 bg-gray-100 rounded-full p-1">
-            {["user", "admin"].map((r) => (
-              <button
-                key={r}
-                onClick={() => setRole(r)}
-                className={`w-1/2 py-2 rounded-full font-semibold cursor-pointer transition ${
-                  role === r ? "bg-blue-500 text-white" : "text-gray-600"
-                }`}
-              >
-                {r === "user" ? "User" : "Admin"}
-              </button>
-            ))}
-          </div>
-
-          {role === "user" && (
-            <form onSubmit={userFormik.handleSubmit} className="space-y-4">
-              <div className="mb-1">
-                <label className="font-semibold">Phone or Email</label>
-                <input
-                  name="identifier"
-                  value={userFormik.values.identifier}
-                  onChange={userFormik.handleChange}
-                  onBlur={userFormik.handleBlur}
-                  placeholder="Enter phone number or email"
-                  autoComplete="username"
-                  className="w-full p-2 mt-1 rounded-lg border border-zinc-300"
-                />
-                {userFormik.touched.identifier &&
-                  userFormik.errors.identifier && (
-                    <p className="text-sm text-red-500">
-                      {userFormik.errors.identifier}
-                    </p>
-                  )}
-              </div>
-
-              <div className="mb-0 text-end text-sm">
-                <a
-                  href="/forgot-password"
-                  className="text-blue-500 font-semibold"
-                >
-                  Forgot password?
-                </a>
-              </div>
-
-              <div>
-                <label className="font-semibold">Password</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={userFormik.values.password}
-                    onChange={userFormik.handleChange}
-                    placeholder="Enter your Password"
-                    className="w-full p-2 mt-1 rounded-lg border border-zinc-300"
-                  />
-                  <span
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-zinc-600"
+            <div className="mt-10 flex items-center gap-4">
+              <div className="flex -space-x-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="w-10 h-10 rounded-full border-2 border-slate-900 bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-xs font-bold"
                   >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                  </span>
-                </div>
+                    {String.fromCharCode(64 + i)}
+                  </div>
+                ))}
               </div>
-
-              <button
-                disabled={userMutation.isPending}
-                className="w-full py-2 rounded-full cursor-pointer bg-blue-500 text-white font-semibold"
-              >
-                {userMutation.isPending ? "Logging in..." : "Login as User"}
-              </button>
-
-              <div className="m-0">
-                <p className="text-center text-sm">
-                  Don’t have an account?{" "}
-                  <a href="/signup" className="text-blue-500 font-semibold">
-                    Signup
-                  </a>
+              <div>
+                <p className="text-white font-bold text-sm">25,000+ Patients</p>
+                <p className="text-blue-300 text-xs">
+                  Trust us with their care
                 </p>
               </div>
-            </form>
-          )}
+            </div>
+          </div>
 
-          {role === "admin" && (
-            <form onSubmit={handleAdminSubmit} className="space-y-4">
-              <div>
-                <label className="font-semibold">Phone Number</label>
-                <input
-                  value={adminData.phone}
-                  placeholder="Enter your Phone Number"
-                  onChange={(e) =>
-                    setAdminData({ ...adminData, phone: e.target.value })
-                  }
-                  className="w-full p-2 mt-1 rounded-lg border border-zinc-300"
-                />
+          <p className="text-xs text-blue-300/60">
+            © {new Date().getFullYear()} SMS Hospital. All rights reserved.
+          </p>
+        </div>
+      </div>
+
+      {/* ==================== RIGHT FORM PANEL ==================== */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 bg-slate-50">
+        <div className="w-full max-w-md">
+          <div className="lg:hidden flex justify-center mb-8">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                <FaHeartbeat className="text-white text-lg" />
               </div>
+              <span className="text-xl font-black text-slate-800">
+                SMS Hospital
+              </span>
+            </Link>
+          </div>
 
-              <div>
-                <label className="font-semibold">Password</label>
-                <div className="relative">
-                  <input
-                    type={showCPassword ? "text" : "password"}
-                    value={adminData.password}
-                    placeholder="Enter your Password"
-                    onChange={(e) =>
-                      setAdminData({ ...adminData, password: e.target.value })
-                    }
-                    className="w-full p-2 mt-1 rounded-lg border border-zinc-300"
-                  />
-                  <span
-                    onClick={() => setShowCPassword(!showCPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-zinc-600"
+          <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8">
+            <div className="mb-8 text-center">
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                Welcome Back
+              </h1>
+              <p className="text-slate-500 text-sm mt-1.5">
+                Please sign in to your account
+              </p>
+            </div>
+
+            {/* ROLE TABS */}
+            <div className="flex mb-6 bg-slate-100 p-1.5 rounded-xl">
+              {[
+                { id: "user", label: "Patient", icon: FaUser },
+                { id: "admin", label: "Admin", icon: FaUserShield },
+              ].map((r) => {
+                const Icon = r.icon;
+                const isActive = role === r.id;
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() => setRole(r.id)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                      isActive
+                        ? "bg-white text-blue-600 shadow-sm"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
                   >
-                    {showCPassword ? <FaEyeSlash /> : <FaEye />}
-                  </span>
-                </div>
-              </div>
+                    <Icon size={14} />
+                    {r.label}
+                  </button>
+                );
+              })}
+            </div>
 
-              <button
-                disabled={adminMutation.isPending}
-                className="w-full py-2 rounded-full cursor-pointer bg-blue-500 text-white font-semibold"
-              >
-                {adminMutation.isPending ? "Logging in..." : "Login as Admin"}
-              </button>
-            </form>
-          )}
+            <AnimatePresence mode="wait">
+              {/* USER FORM */}
+              {role === "user" && (
+                <motion.form
+                  key="user"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  transition={{ duration: 0.2 }}
+                  onSubmit={userFormik.handleSubmit}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                      Phone or Email
+                    </label>
+                    <div className="relative">
+                      <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                      <input
+                        name="identifier"
+                        value={userFormik.values.identifier}
+                        onChange={userFormik.handleChange}
+                        onBlur={userFormik.handleBlur}
+                        placeholder="Enter phone or email"
+                        className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none transition ${
+                          userFormik.touched.identifier &&
+                          userFormik.errors.identifier
+                            ? "border-rose-300 bg-rose-50/30 focus:border-rose-500"
+                            : "border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        }`}
+                      />
+                    </div>
+                    {userFormik.touched.identifier &&
+                      userFormik.errors.identifier && (
+                        <p className="text-rose-500 text-xs mt-1 font-medium">
+                          {userFormik.errors.identifier}
+                        </p>
+                      )}
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-1.5">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Password
+                      </label>
+                      <Link
+                        href="/forgotPassword"
+                        className="text-xs font-bold text-blue-600 hover:text-blue-700"
+                      >
+                        Forgot?
+                      </Link>
+                    </div>
+                    <div className="relative">
+                      <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={userFormik.values.password}
+                        onChange={userFormik.handleChange}
+                        placeholder="Enter password"
+                        className="w-full pl-11 pr-11 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                      >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={userMutation.isPending}
+                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                  >
+                    {userMutation.isPending ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{" "}
+                        Signing in...
+                      </>
+                    ) : (
+                      "Sign In"
+                    )}
+                  </button>
+
+                  <p className="text-center text-sm text-slate-500 mt-6 pt-6 border-t border-slate-100">
+                    Don't have an account?{" "}
+                    <Link
+                      href="/signup"
+                      className="font-bold text-blue-600 hover:text-blue-700"
+                    >
+                      Create one
+                    </Link>
+                  </p>
+                </motion.form>
+              )}
+
+              {/* ADMIN FORM */}
+              {role === "admin" && (
+                <motion.form
+                  key="admin"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.2 }}
+                  onSubmit={handleAdminSubmit}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                      Admin Phone
+                    </label>
+                    <div className="relative">
+                      <FaPhoneAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                      <input
+                        value={adminData.phone}
+                        onChange={(e) =>
+                          setAdminData({ ...adminData, phone: e.target.value })
+                        }
+                        placeholder="Enter admin phone number"
+                        className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none transition ${
+                          adminErrors.phone
+                            ? "border-rose-300 bg-rose-50/30 focus:border-rose-500"
+                            : "border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        }`}
+                      />
+                    </div>
+                    {adminErrors.phone && (
+                      <p className="text-rose-500 text-xs mt-1 font-medium">
+                        {adminErrors.phone}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                      <input
+                        type={showCPassword ? "text" : "password"}
+                        value={adminData.password}
+                        onChange={(e) =>
+                          setAdminData({
+                            ...adminData,
+                            password: e.target.value,
+                          })
+                        }
+                        placeholder="Enter password"
+                        className={`w-full pl-11 pr-11 py-3 rounded-xl border outline-none transition ${
+                          adminErrors.password
+                            ? "border-rose-300 bg-rose-50/30 focus:border-rose-500"
+                            : "border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCPassword(!showCPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                      >
+                        {showCPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                    {adminErrors.password && (
+                      <p className="text-rose-500 text-xs mt-1 font-medium">
+                        {adminErrors.password}
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={adminMutation.isPending}
+                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black text-white font-bold rounded-xl shadow-lg shadow-slate-500/30 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                  >
+                    {adminMutation.isPending ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{" "}
+                        Authenticating...
+                      </>
+                    ) : (
+                      "Access Dashboard"
+                    )}
+                  </button>
+
+                  <p className="text-center text-xs text-slate-400 mt-6 pt-6 border-t border-slate-100">
+                    Protected by enterprise-grade security.
+                  </p>
+                </motion.form>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </div>
