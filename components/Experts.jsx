@@ -213,95 +213,91 @@ const Experts = () => {
       <AnimatePresence>
         {selectedDoc && (
           <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md overflow-y-auto"
             onClick={() => setSelectedDoc(null)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-4xl my-auto bg-white rounded-3xl shadow-2xl overflow-hidden"
+              className="relative w-full max-w-4xl my-auto bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row"
             >
-              {/* Close button */}
+              {/* Close Button */}
               <button
                 onClick={() => setSelectedDoc(null)}
-                className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center cursor-pointer font-bold z-20 bg-white/90 hover:bg-red-50 hover:text-red-500 rounded-full shadow-lg transition-all text-slate-700"
+                className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center cursor-pointer font-bold z-20 bg-white/90 hover:bg-red-50 hover:text-red-500 rounded-full shadow-lg transition-all text-slate-700 text-sm"
                 aria-label="Close"
               >
                 ✕
               </button>
 
-              <div className="flex flex-col md:flex-row max-h-[85vh]">
-                {/* ============ IMAGE ============ */}
-                <div className="relative w-full md:w-2/5 h-64 md:h-auto shrink-0 bg-slate-100">
-                  <img
-                    src={getImageUrl(selectedDoc)}
-                    alt={selectedDoc.name}
-                    onError={(e) => {
-                      e.target.src = "/images/logo/flaticon.png";
-                    }}
-                    className="absolute inset-0 w-full h-full object-cover object-top"
-                  />
-                  {/* Gradient overlay bottom */}
-                  <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-900/40 to-transparent md:hidden" />
+              {/* ============ IMAGE SECTION ============ */}
+              {/* Mobile pe image upar 250px, Desktop pe left 40% */}
+              <div className="relative w-full md:w-2/5 h-64 md:h-auto shrink-0 bg-slate-100">
+                <img
+                  src={getImageUrl(selectedDoc)}
+                  alt={selectedDoc.name}
+                  onError={(e) => {
+                    e.target.src = "/images/logo/flaticon.png";
+                  }}
+                  className="absolute inset-0 w-full h-full object-cover object-top"
+                />
+                {/* Dark overlay for mobile readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent md:hidden" />
+              </div>
+
+              {/* ============ CONTENT SECTION ============ */}
+              {/* Mobile pe scrollable content, Desktop pe right side */}
+              <div className="flex-1 flex flex-col max-h-[70vh] md:max-h-[85vh]">
+                <div className="p-6 md:p-8 overflow-y-auto">
+                  <span className="text-blue-600 font-black text-[10px] uppercase tracking-[0.2em] mb-2 block">
+                    {selectedDoc.department || selectedDoc.role || "Specialist"}
+                  </span>
+
+                  <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
+                    {selectedDoc.name}
+                  </h2>
+
+                  <p className="text-sm font-bold text-blue-600 mt-1.5">
+                    {selectedDoc.specialty || selectedDoc.specialization || "—"}
+                  </p>
+
+                  <div className="w-12 h-1 bg-blue-100 my-4 rounded-full"></div>
+
+                  <p className="text-slate-600 text-sm leading-relaxed mb-6">
+                    {selectedDoc.description ||
+                      "Leading specialist at SMS Hospital providing advanced care."}
+                  </p>
+
+                  {/* Experience & Fee Pills */}
+                  <div className="flex flex-wrap gap-2 mb-8">
+                    {selectedDoc.experience && (
+                      <div className="px-3 py-1.5 bg-slate-100 rounded-lg font-bold text-slate-600 text-xs">
+                        🕒 {selectedDoc.experience}
+                      </div>
+                    )}
+                    {selectedDoc.consultationFee && (
+                      <div className="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg font-bold text-xs">
+                        ₹{selectedDoc.consultationFee} Fee
+                      </div>
+                    )}
+                    {selectedDoc.phone && (
+                      <div className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg font-bold text-xs">
+                        📞 {selectedDoc.phone}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* ============ CONTENT ============ */}
-                <div className="flex-1 overflow-y-auto">
-                  <div className="p-6 md:p-8">
-                    <span className="text-blue-600 font-black text-[10px] uppercase tracking-[0.2em] mb-2 block">
-                      {selectedDoc.department ||
-                        selectedDoc.role ||
-                        "Specialist"}
-                    </span>
-
-                    <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
-                      {selectedDoc.name}
-                    </h2>
-
-                    <p className="text-sm font-bold text-blue-500 mt-2">
-                      {selectedDoc.specialty ||
-                        selectedDoc.specialization ||
-                        "—"}
-                    </p>
-
-                    <div className="w-12 h-1 bg-blue-100 my-5"></div>
-
-                    <p className="text-slate-500 text-sm leading-relaxed">
-                      {selectedDoc.description ||
-                        "Leading specialist at SMS Hospital providing advanced care."}
-                    </p>
-
-                    {/* Experience & Fee */}
-                    <div className="flex flex-wrap gap-3 mt-5">
-                      {selectedDoc.experience && (
-                        <div className="px-3 py-1.5 bg-slate-100 rounded-lg font-semibold text-slate-600 text-xs">
-                          🕒 {selectedDoc.experience}
-                        </div>
-                      )}
-                      {selectedDoc.consultationFee && (
-                        <div className="px-3 py-1.5 bg-emerald-50 rounded-lg font-semibold text-emerald-700 text-xs">
-                          ₹{selectedDoc.consultationFee}
-                        </div>
-                      )}
-                      {selectedDoc.phone && (
-                        <div className="px-3 py-1.5 bg-blue-50 rounded-lg font-semibold text-blue-700 text-xs">
-                          📞 {selectedDoc.phone}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Book Button */}
-                    <div className="mt-8">
-                      <a
-                        href="/login"
-                        className="inline-block w-full md:w-auto text-center px-8 py-3.5 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/20 active:scale-95"
-                      >
-                        Book Appointment
-                      </a>
-                    </div>
-                  </div>
+                {/* 👇 STICKY BUTTON AT BOTTOM (Mobile me hamesha dikhega) */}
+                <div className="p-4 md:p-6 border-t border-slate-100 bg-white mt-auto">
+                  <a
+                    href="/login"
+                    className="block w-full text-center px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition shadow-lg shadow-blue-500/30 active:scale-95"
+                  >
+                    Book Appointment
+                  </a>
                 </div>
               </div>
             </motion.div>
