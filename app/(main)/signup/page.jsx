@@ -8,7 +8,6 @@ import toast from "react-hot-toast";
 import {
   FaEye,
   FaEyeSlash,
-  FaHeartbeat,
   FaUser,
   FaPhoneAlt,
   FaEnvelope,
@@ -112,14 +111,27 @@ const Signup = () => {
   return (
     <div className="min-h-screen flex">
       {/* ==================== LEFT BRAND PANEL ==================== */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 overflow-hidden">
-        <div className="absolute top-0 -left-40 w-96 h-96 rounded-full bg-blue-500/20 blur-3xl" />
-        <div className="absolute bottom-0 -right-40 w-96 h-96 rounded-full bg-indigo-500/20 blur-3xl" />
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        {/* BACKGROUND IMAGE WITH OVERLAY */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/images/img/hospital/hospital.jpeg"
+            alt="SMS Hospital"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/30 to-transparent" />
+        </div>
 
-        <div className="relative flex flex-col justify-between p-12 w-full">
+        <div className="relative z-10 flex flex-col justify-between p-12 w-full">
+          {/* LOGO IMAGE INSTEAD OF ICON */}
           <Link href="/" className="flex items-center gap-3 group w-fit">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/40 group-hover:scale-110 transition-transform">
-              <FaHeartbeat className="text-white text-xl" />
+            <div className="w-14 h-14 rounded-2xl bg-white p-1 flex items-center justify-center shadow-xl shadow-black/50 group-hover:scale-110 transition-transform overflow-hidden border-2 border-white/20">
+              <img
+                src="/images/logo/logo.jpeg"
+                alt="SMS Logo"
+                className="w-full h-full object-cover rounded-xl"
+              />
             </div>
             <div>
               <p className="text-white font-black text-lg tracking-tight">
@@ -138,7 +150,7 @@ const Signup = () => {
                 Healthier Tomorrow.
               </span>
             </h2>
-            <p className="text-blue-100/80 leading-relaxed">
+            <p className="text-blue-100/90 leading-relaxed text-lg">
               Create your account to book appointments, consult with top
               specialists, and manage your health records — all in one place.
             </p>
@@ -172,7 +184,12 @@ const Signup = () => {
             </div>
           </div>
 
-          <p className="text-xs text-blue-300/60">
+          <div>
+            <p className="text-white font-bold text-sm">25,000+ Patients</p>
+            <p className="text-blue-300 text-xs">Trust us with their care</p>
+          </div>
+
+          <p className="text-xs text-blue-300/60 font-medium">
             © {new Date().getFullYear()} SMS Hospital. All rights reserved.
           </p>
         </div>
@@ -184,8 +201,12 @@ const Signup = () => {
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                <FaHeartbeat className="text-white text-lg" />
+              <div className="w-11 h-11 rounded-xl bg-white p-0.5 shadow-lg overflow-hidden border border-slate-200">
+                <img
+                  src="/images/logo/logo.jpeg"
+                  alt="SMS Logo"
+                  className="w-full h-full object-cover rounded-lg"
+                />
               </div>
               <span className="text-xl font-black text-slate-800">
                 SMS Hospital

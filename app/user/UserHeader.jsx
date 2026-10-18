@@ -11,6 +11,7 @@ import {
   FiUser,
   FiChevronDown,
   FiCalendar,
+  FiHome, // 👈 Home icon import kiya
 } from "react-icons/fi";
 
 const pageTitles = {
@@ -71,7 +72,7 @@ const UserHeader = ({ onMenuClick }) => {
     <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200">
       <div className="flex items-center justify-between px-4 md:px-6 h-16 gap-3">
         {/* Left */}
-        <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
           <button
             onClick={onMenuClick}
             className="md:hidden p-2 rounded-xl hover:bg-slate-100 transition text-slate-700 shrink-0"
@@ -90,6 +91,17 @@ const UserHeader = ({ onMenuClick }) => {
               {pageTitle}
             </h1>
           </div>
+
+          {/* 👇 Back to Home Button (Desktop) */}
+          <Link
+            href="/"
+            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-slate-100 text-slate-600 hover:text-blue-600 text-sm font-bold transition-all shrink-0"
+            title="Back to Main Website"
+          >
+            <FiHome size={16} />
+            Home
+          </Link>
+          <div className="hidden md:block w-px h-6 bg-slate-200 mx-1" />
         </div>
 
         {/* Right */}
@@ -144,6 +156,16 @@ const UserHeader = ({ onMenuClick }) => {
                     {user?.phone || ""}
                   </p>
                 </div>
+
+                {/* 👇 Home Link in Dropdown (Mobile users can use this) */}
+                <Link
+                  href="/"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors font-medium"
+                >
+                  <FiHome className="text-slate-400 w-4 h-4" />
+                  Main Website
+                </Link>
 
                 <Link
                   href="/user/profile"

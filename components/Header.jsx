@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Carrer from "./Carrer";
 import { HiMenuAlt3, HiX } from "react-icons/hi";
-import { FiPhone, FiCalendar } from "react-icons/fi";
+import { FiPhone, FiCalendar, FiUser } from "react-icons/fi"; // 👈 FiUser import kiya
 
 const NAV_LINKS = [
   { name: "Home", href: "/" },
@@ -21,7 +21,23 @@ const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
-  // Scroll detection for shadow
+  // 👇 User login state
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
+
+  // Check login status
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    const userData = localStorage.getItem("user");
+    const userRole = localStorage.getItem("role");
+
+    if (token && userData) {
+      setUser(JSON.parse(userData));
+      setRole(userRole);
+    }
+  }, [pathname]); // Jab bhi route change ho, check karo
+
+  // Scroll detection
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll);
@@ -32,6 +48,10 @@ const Header = () => {
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  // Dashboard link based on role
+  const dashboardLink =
+    role === "admin" ? "/admin/dashboard" : "/user/dashboard";
 
   return (
     <>
@@ -65,19 +85,15 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* ============ BRAND ============ */}
-            <Link
-              href="/"
-              className="flex items-center gap-3 group shrink-0"
-            >
+            <Link href="/" className="flex items-center gap-3 group shrink-0">
               <div className="relative">
                 <img
                   src="/images/logo/logo.jpeg"
                   className="rounded-full h-11 w-11 md:h-12 md:w-12 ring-2 ring-blue-100 group-hover:ring-blue-300 transition-all object-cover"
                   alt="SMS Hospital"
                 />
-                {/* <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" /> */}
               </div>
-              <div className="leading-tight">
+              <div className="leading-tight hidden sm:block">
                 <p className="text-base md:text-lg font-black text-slate-800 tracking-tight">
                   SMS Hospital Pvt Ltd
                 </p>
@@ -121,13 +137,33 @@ const Header = () => {
                 <span className="hidden xl:inline">Call Now</span>
               </a>
 
-              <Link
-                href="/login"
-                className="group inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all active:scale-95"
-              >
-                <FiCalendar size={15} />
-                Book Appointment
-              </Link>
+              {/* 👇 CONDITIONAL RENDERING LOGIC */}
+              {user ? (
+                <Link
+                  href={dashboardLink}
+                  className="group inline-flex items-center gap-2 px-2 py-1.5 pr-4 bg-white border border-slate-200 hover:border-blue-300 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-sm">
+                    <FiUser size={16} />
+                  </div>
+                  <div className="flex flex-col items-start text-left">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-0.5">
+                      {role === "admin" ? "Admin" : "Patient"}
+                    </span>
+                    <span className="text-sm font-black text-slate-800 leading-none max-w-[100px] truncate">
+                      {user.fullName?.split(" ")[0] || "User"}
+                    </span>
+                  </div>
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className="group inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all active:scale-95"
+                >
+                  <FiCalendar size={15} />
+                  Book Appointment
+                </Link>
+              )}
             </div>
 
             {/* ============ MOBILE MENU TOGGLE ============ */}
@@ -178,14 +214,40 @@ const Header = () => {
                 Call Now
               </a>
 
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="flex items-center justify-center gap-2 px-4 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/30 active:scale-95 transition-all"
-              >
-                <FiCalendar size={15} />
-                Book Appointment
-              </Link>
+              {/* 👇 MOBILE CONDITIONAL RENDERING LOGIC */}
+              {user ? (
+                <Link
+                  href={dashboardLink}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-between gap-2 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl transition-all active:scale-95"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-sm">
+                      <FiUser size={16} />
+                    </div>
+                    <div className="flex flex-col items-start text-left">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">
+                        {role === "admin" ? "Admin Account" : "My Account"}
+                      </span>
+                      <span className="text-sm font-black text-slate-800">
+                        {user.fullName || "User"}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-blue-600">
+                    Dashboard &rarr;
+                  </span>
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-center gap-2 px-4 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/30 active:scale-95 transition-all"
+                >
+                  <FiCalendar size={15} />
+                  Book Appointment
+                </Link>
+              )}
             </div>
           </div>
         </div>

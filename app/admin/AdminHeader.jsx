@@ -2,7 +2,13 @@
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { FiLogOut, FiMenu, FiUser, FiChevronDown, FiSearch } from "react-icons/fi";
+import {
+  FiLogOut,
+  FiMenu,
+  FiUser,
+  FiChevronDown,
+  FiHome, // 👈 Home icon import kiya
+} from "react-icons/fi";
 import { toast } from "react-hot-toast";
 
 const menuItems = [
@@ -59,7 +65,7 @@ const AdminHeader = ({ onMenuClick }) => {
   const pageTitle =
     pageTitles[pathname] ||
     Object.entries(pageTitles).find(([key]) =>
-      pathname?.startsWith(key + "/")
+      pathname?.startsWith(key + "/"),
     )?.[1] ||
     "Admin";
 
@@ -76,7 +82,7 @@ const AdminHeader = ({ onMenuClick }) => {
     <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200">
       <div className="flex items-center justify-between px-4 md:px-6 h-16 gap-3">
         {/* ============ LEFT ============ */}
-        <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
           {/* Hamburger (mobile) */}
           <button
             onClick={onMenuClick}
@@ -97,11 +103,22 @@ const AdminHeader = ({ onMenuClick }) => {
               {pageTitle}
             </h1>
           </div>
+
+          {/* 👇 Back to Home Button (Desktop) */}
+          <Link
+            href="/"
+            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-slate-100 text-slate-600 hover:text-blue-600 text-sm font-bold transition-all shrink-0"
+            title="Back to Main Website"
+          >
+            <FiHome size={16} />
+            Home
+          </Link>
+
+          <div className="hidden md:block w-px h-6 bg-slate-200 mx-1" />
         </div>
 
         {/* ============ RIGHT ============ */}
         <div className="flex items-center gap-2 md:gap-3 shrink-0">
-
           {/* Profile dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
@@ -141,6 +158,16 @@ const AdminHeader = ({ onMenuClick }) => {
                     {admin?.email || "admin@hospital.com"}
                   </p>
                 </div>
+
+                {/* 👇 Home Link in Dropdown (Mobile users can use this) */}
+                <Link
+                  href="/"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors font-medium"
+                >
+                  <FiHome className="text-slate-400 w-4 h-4" />
+                  Main Website
+                </Link>
 
                 <button
                   onClick={() => {

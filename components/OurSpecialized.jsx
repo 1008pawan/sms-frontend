@@ -214,7 +214,7 @@ const OurSpecialized = () => {
         </motion.div>
 
         {/* BOTTOM CTA */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -227,7 +227,7 @@ const OurSpecialized = () => {
             View All Departments
             <FaArrowRight size={12} />
           </Link>
-        </motion.div>
+        </motion.div> */}
       </div>
 
       {/* MODAL */}

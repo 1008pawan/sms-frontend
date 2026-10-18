@@ -210,101 +210,104 @@ const Experts = () => {
       </div>
 
       {/* ================= PROFILE MODAL ================= */}
-      {/* ================= PROFILE MODAL ================= */}
-<AnimatePresence>
-  {selectedDoc && (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto"
-      onClick={() => setSelectedDoc(null)}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 30 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 30 }}
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-4xl my-auto bg-white rounded-3xl shadow-2xl overflow-hidden"
-      >
-        {/* Close button */}
-        <button
-          onClick={() => setSelectedDoc(null)}
-          className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center cursor-pointer font-bold z-20 bg-white/90 hover:bg-red-50 hover:text-red-500 rounded-full shadow-lg transition-all text-slate-700"
-          aria-label="Close"
-        >
-          ✕
-        </button>
+      <AnimatePresence>
+        {selectedDoc && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto"
+            onClick={() => setSelectedDoc(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-4xl my-auto bg-white rounded-3xl shadow-2xl overflow-hidden"
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setSelectedDoc(null)}
+                className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center cursor-pointer font-bold z-20 bg-white/90 hover:bg-red-50 hover:text-red-500 rounded-full shadow-lg transition-all text-slate-700"
+                aria-label="Close"
+              >
+                ✕
+              </button>
 
-        <div className="flex flex-col md:flex-row max-h-[85vh]">
-          {/* ============ IMAGE ============ */}
-          <div className="relative w-full md:w-2/5 h-64 md:h-auto shrink-0 bg-slate-100">
-            <img
-              src={getImageUrl(selectedDoc)}
-              alt={selectedDoc.name}
-              onError={(e) => {
-                e.target.src = "/images/logo/flaticon.png";
-              }}
-              className="absolute inset-0 w-full h-full object-cover object-top"
-            />
-            {/* Gradient overlay bottom */}
-            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-900/40 to-transparent md:hidden" />
-          </div>
+              <div className="flex flex-col md:flex-row max-h-[85vh]">
+                {/* ============ IMAGE ============ */}
+                <div className="relative w-full md:w-2/5 h-64 md:h-auto shrink-0 bg-slate-100">
+                  <img
+                    src={getImageUrl(selectedDoc)}
+                    alt={selectedDoc.name}
+                    onError={(e) => {
+                      e.target.src = "/images/logo/flaticon.png";
+                    }}
+                    className="absolute inset-0 w-full h-full object-cover object-top"
+                  />
+                  {/* Gradient overlay bottom */}
+                  <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-900/40 to-transparent md:hidden" />
+                </div>
 
-          {/* ============ CONTENT ============ */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-6 md:p-8">
-              <span className="text-blue-600 font-black text-[10px] uppercase tracking-[0.2em] mb-2 block">
-                {selectedDoc.department || selectedDoc.role || "Specialist"}
-              </span>
+                {/* ============ CONTENT ============ */}
+                <div className="flex-1 overflow-y-auto">
+                  <div className="p-6 md:p-8">
+                    <span className="text-blue-600 font-black text-[10px] uppercase tracking-[0.2em] mb-2 block">
+                      {selectedDoc.department ||
+                        selectedDoc.role ||
+                        "Specialist"}
+                    </span>
 
-              <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
-                {selectedDoc.name}
-              </h2>
+                    <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
+                      {selectedDoc.name}
+                    </h2>
 
-              <p className="text-sm font-bold text-blue-500 mt-2">
-                {selectedDoc.specialty || selectedDoc.specialization || "—"}
-              </p>
+                    <p className="text-sm font-bold text-blue-500 mt-2">
+                      {selectedDoc.specialty ||
+                        selectedDoc.specialization ||
+                        "—"}
+                    </p>
 
-              <div className="w-12 h-1 bg-blue-100 my-5"></div>
+                    <div className="w-12 h-1 bg-blue-100 my-5"></div>
 
-              <p className="text-slate-500 text-sm leading-relaxed">
-                {selectedDoc.description ||
-                  "Leading specialist at SMS Hospital providing advanced care."}
-              </p>
+                    <p className="text-slate-500 text-sm leading-relaxed">
+                      {selectedDoc.description ||
+                        "Leading specialist at SMS Hospital providing advanced care."}
+                    </p>
 
-              {/* Experience & Fee */}
-              <div className="flex flex-wrap gap-3 mt-5">
-                {selectedDoc.experience && (
-                  <div className="px-3 py-1.5 bg-slate-100 rounded-lg font-semibold text-slate-600 text-xs">
-                    🕒 {selectedDoc.experience}
+                    {/* Experience & Fee */}
+                    <div className="flex flex-wrap gap-3 mt-5">
+                      {selectedDoc.experience && (
+                        <div className="px-3 py-1.5 bg-slate-100 rounded-lg font-semibold text-slate-600 text-xs">
+                          🕒 {selectedDoc.experience}
+                        </div>
+                      )}
+                      {selectedDoc.consultationFee && (
+                        <div className="px-3 py-1.5 bg-emerald-50 rounded-lg font-semibold text-emerald-700 text-xs">
+                          ₹{selectedDoc.consultationFee}
+                        </div>
+                      )}
+                      {selectedDoc.phone && (
+                        <div className="px-3 py-1.5 bg-blue-50 rounded-lg font-semibold text-blue-700 text-xs">
+                          📞 {selectedDoc.phone}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Book Button */}
+                    <div className="mt-8">
+                      <a
+                        href="/login"
+                        className="inline-block w-full md:w-auto text-center px-8 py-3.5 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/20 active:scale-95"
+                      >
+                        Book Appointment
+                      </a>
+                    </div>
                   </div>
-                )}
-                {selectedDoc.consultationFee && (
-                  <div className="px-3 py-1.5 bg-emerald-50 rounded-lg font-semibold text-emerald-700 text-xs">
-                    ₹{selectedDoc.consultationFee}
-                  </div>
-                )}
-                {selectedDoc.phone && (
-                  <div className="px-3 py-1.5 bg-blue-50 rounded-lg font-semibold text-blue-700 text-xs">
-                    📞 {selectedDoc.phone}
-                  </div>
-                )}
+                </div>
               </div>
-
-              {/* Book Button */}
-              <div className="mt-8">
-                <a
-                  href="/login"
-                  className="inline-block w-full md:w-auto text-center px-8 py-3.5 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/20 active:scale-95"
-                >
-                  Book Appointment
-                </a>
-              </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
-      </motion.div>
-    </div>
-  )}
-</AnimatePresence>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
