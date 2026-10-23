@@ -208,82 +208,91 @@ export default function PublicDepartmentsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex flex-col gap-4"
                 >
-                  {activeDept.doctors.map((doc) => (
-                    <div
-                      key={doc._id}
-                      className="group relative bg-white border border-slate-100 p-5 md:p-6 rounded-[2rem] flex flex-col md:flex-row items-center gap-5 md:gap-6 transition-all duration-300 hover:shadow-xl"
-                    >
-                      {/* Image */}
-                      <div className="relative shrink-0">
-                        <div className="h-28 w-28 md:h-28 md:w-28 rounded-3xl overflow-hidden ring-4 ring-slate-50 shadow-sm">
-                          <img
-                            src={getImageUrl(doc.photo)}
-                            alt={doc.name}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <div
-                          className={`absolute -bottom-2 -right-2 h-6 w-6 rounded-full border-4 border-white flex items-center justify-center ${
-                            doc.isAvailable ? "bg-green-500" : "bg-red-500"
-                          }`}
-                        >
-                          <div className="h-1.5 w-1.5 bg-white rounded-full animate-pulse"></div>
-                        </div>
-                      </div>
+                  {[...activeDept.doctors]
+                    .sort((a, b) => {
+                      const isARicha = a.name.toLowerCase().includes("richa");
+                      const isBRicha = b.name.toLowerCase().includes("richa");
 
-                      {/* Content */}
-                      <div className="flex-1 text-center md:text-left space-y-1.5">
-                        <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 justify-center md:justify-start">
-                          <h3 className="text-xl font-black text-slate-800 tracking-tight">
-                            {doc.name}
-                          </h3>
-                          <span className="hidden md:block text-slate-300">
-                            |
-                          </span>
-                          <span className="text-blue-600 text-xs md:text-sm font-bold uppercase tracking-wider">
-                            {doc.specialization}
-                          </span>
-                        </div>
-                        <p className="text-slate-500 text-sm font-medium">
-                          {doc.specialty}
-                        </p>
-
-                        <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4 mt-3">
-                          <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border border-slate-100">
-                            <FaUserMd className="text-blue-500" />{" "}
-                            {doc.experience || "0"} Exp.
+                      if (isARicha && !isBRicha) return -1;
+                      if (!isARicha && isBRicha) return 1;
+                      return 0;
+                    })
+                    .map((doc) => (
+                      <div
+                        key={doc._id}
+                        className="group relative bg-white border border-slate-100 p-5 md:p-6 rounded-[2rem] flex flex-col md:flex-row items-center gap-5 md:gap-6 transition-all duration-300 hover:shadow-xl"
+                      >
+                        {/* Image */}
+                        <div className="relative shrink-0">
+                          <div className="h-28 w-28 md:h-28 md:w-28 rounded-3xl overflow-hidden ring-4 ring-slate-50 shadow-sm">
+                            <img
+                              src={getImageUrl(doc.photo)}
+                              alt={doc.name}
+                              className="h-full w-full object-cover"
+                            />
                           </div>
+                          <div
+                            className={`absolute -bottom-2 -right-2 h-6 w-6 rounded-full border-4 border-white flex items-center justify-center ${
+                              doc.isAvailable ? "bg-green-500" : "bg-red-500"
+                            }`}
+                          >
+                            <div className="h-1.5 w-1.5 bg-white rounded-full animate-pulse"></div>
+                          </div>
+                        </div>
 
-                          {/* 👇 DYNAMIC TIMINGS */}
-                          {doc.availability?.timings?.length > 0 ? (
-                            doc.availability.timings.map((shift, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border border-slate-100"
-                              >
-                                <FaClock className="text-blue-500" />{" "}
-                                {shift.startTime} - {shift.endTime}
-                              </div>
-                            ))
-                          ) : (
+                        {/* Content */}
+                        <div className="flex-1 text-center md:text-left space-y-1.5">
+                          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 justify-center md:justify-start">
+                            <h3 className="text-xl font-black text-slate-800 tracking-tight">
+                              {doc.name}
+                            </h3>
+                            <span className="hidden md:block text-slate-300">
+                              |
+                            </span>
+                            <span className="text-blue-600 text-xs md:text-sm font-bold uppercase tracking-wider">
+                              {doc.specialization}
+                            </span>
+                          </div>
+                          <p className="text-slate-500 text-sm font-medium">
+                            {doc.specialty}
+                          </p>
+
+                          <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4 mt-3">
                             <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border border-slate-100">
-                              <FaClock className="text-blue-500" /> On Call
+                              <FaUserMd className="text-blue-500" />{" "}
+                              {doc.experience || "0"} Exp.
                             </div>
-                          )}
+
+                            {/* 👇 DYNAMIC TIMINGS */}
+                            {doc.availability?.timings?.length > 0 ? (
+                              doc.availability.timings.map((shift, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border border-slate-100"
+                                >
+                                  <FaClock className="text-blue-500" />{" "}
+                                  {shift.startTime} - {shift.endTime}
+                                </div>
+                              ))
+                            ) : (
+                              <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border border-slate-100">
+                                <FaClock className="text-blue-500" /> On Call
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 👇 CTA Changed */}
+                        <div className="w-full md:w-auto mt-2 md:mt-0">
+                          <a
+                            href="/login"
+                            className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold rounded-xl md:rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all cursor-pointer shadow-md shadow-blue-500/20 active:scale-95"
+                          >
+                            <FaCalendarCheck /> Book Appointment
+                          </a>
                         </div>
                       </div>
-
-                      {/* 👇 CTA Changed */}
-                      <div className="w-full md:w-auto mt-2 md:mt-0">
-                        <a
-                          href="/login"
-                          className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold rounded-xl md:rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all cursor-pointer shadow-md shadow-blue-500/20 active:scale-95"
-                        >
-                          <FaCalendarCheck /> Book Appointment
-                        </a>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </motion.div>
               </div>
             </div>
