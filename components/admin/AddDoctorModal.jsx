@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import api from "../Api/PrivateApi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X, Upload, Loader2 } from "lucide-react";
+import { X, Upload, Loader2, Clock } from "lucide-react";
 import toast from "react-hot-toast";
 
 const departmentOptions = [
@@ -24,6 +24,8 @@ const departmentOptions = [
   "Gastro Surgery",
 ];
 
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
 export default function AddDoctorModal({ close, editDoctor = null }) {
   const queryClient = useQueryClient();
 
@@ -31,6 +33,11 @@ export default function AddDoctorModal({ close, editDoctor = null }) {
 
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
+
+  const [availability, setAvailability] = useState({
+    days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    timings: [{ startTime: "10:00 AM", endTime: "05:00 PM" }],
+  });
 
   const [formData, setFormData] = useState({
     name: "",
@@ -57,6 +64,10 @@ export default function AddDoctorModal({ close, editDoctor = null }) {
         consultationFee: editDoctor.consultationFee || 500,
       });
 
+      if (editDoctor.availability) {
+        setAvailability(editDoctor.availability);
+      }
+
       if (editDoctor.photo) {
         const baseURL =
           process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
@@ -70,6 +81,35 @@ export default function AddDoctorModal({ close, editDoctor = null }) {
     }
   }, [editDoctor]);
 
+  const toggleDay = (day) => {
+    setAvailability((prev) => ({
+      ...prev,
+      days: prev.days.includes(day)
+        ? prev.days.filter((d) => d !== day)
+        : [...prev.days, day],
+    }));
+  };
+
+  const handleAddShift = () => {
+    setAvailability((prev) => ({
+      ...prev,
+      timings: [...prev.timings, { startTime: "", endTime: "" }],
+    }));
+  };
+
+  const handleRemoveShift = (index) => {
+    setAvailability((prev) => ({
+      ...prev,
+      timings: prev.timings.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleShiftChange = (index, field, value) => {
+    const updatedTimings = [...availability.timings];
+    updatedTimings[index][field] = value;
+    setAvailability({ ...availability, timings: updatedTimings });
+  };
+
   const mutation = useMutation({
     mutationFn: async (data) => {
       const form = new FormData();
@@ -77,6 +117,8 @@ export default function AddDoctorModal({ close, editDoctor = null }) {
       Object.entries(data).forEach(([key, value]) => {
         form.append(key, value);
       });
+
+      form.append("availability", JSON.stringify(availability));
 
       if (file) {
         form.append("photo", file);
@@ -315,6 +357,75 @@ export default function AddDoctorModal({ close, editDoctor = null }) {
               placeholder="Brief professional summary..."
               className="w-full border border-slate-200 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
             />
+          </div>
+
+          <div className="border-t border-slate-100 pt-6 mt-6">
+            <h3 className="text-sm font-black uppercase text-slate-400 mb-4 flex items-center gap-2">
+              <Clock size={16} /> Consultation Timing
+            </h3>
+
+            <div className="space-y-3 mb-4">
+              {availability.timings.map((timing, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    placeholder="Start Time (e.g. 10:00 AM)"
+                    value={timing.startTime}
+                    onChange={(e) =>
+                      handleShiftChange(index, "startTime", e.target.value)
+                    }
+                    className="flex-1 border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                  <span className="text-slate-400 font-bold">to</span>
+                  <input
+                    type="text"
+                    placeholder="End Time (e.g. 01:00 PM)"
+                    value={timing.endTime}
+                    onChange={(e) =>
+                      handleShiftChange(index, "endTime", e.target.value)
+                    }
+                    className="flex-1 border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                  {availability.timings.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveShift(index)}
+                      className="p-3 text-slate-400 hover:text-red-500 bg-slate-50 hover:bg-red-50 rounded-xl transition-colors"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleAddShift}
+              className="text-xs font-bold text-blue-600 bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-1.5 mb-6"
+            >
+              <Plus size={14} /> Add Another Shift
+            </button>
+
+            <label className="text-xs font-bold text-slate-500 mb-2 block">
+              Available Days
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {DAYS.map((day) => (
+                <button
+                  key={day}
+                  type="button"
+                  onClick={() => toggleDay(day)}
+                  className={`px-4 py-2 text-xs font-bold rounded-lg border transition-colors ${
+                    availability.days.includes(day)
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  {day}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Footer */}

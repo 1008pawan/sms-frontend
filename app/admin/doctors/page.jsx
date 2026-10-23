@@ -68,14 +68,13 @@ export default function AdminDoctorsPage() {
           </p>
         </div>
 
-        {/*         
         <button
           onClick={() => setShowModal(true)}
           className="flex items-center md:gap-2 md:text-base text-xs md:h-13 h-10 bg-blue-600 hover:bg-blue-700 transition-all cursor-pointer text-white md:px-8 px-2 md:py-4 py-2 rounded-[1.5rem] font-bold shadow-xl shadow-blue-100 active:scale-95"
         >
           <Plus size={22} />
           <p>Add New Specialist</p>
-        </button> */}
+        </button>
       </div>
 
       {isLoading ? (
@@ -144,6 +143,22 @@ export default function AdminDoctorsPage() {
               <p className="text-slate-400 text-xs font-bold mt-2 uppercase tracking-tighter">
                 {doc.specialization || "Senior Consultant"}
               </p>
+
+              {/* Timing details add karo */}
+              <div className="flex flex-col gap-2 mt-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                {doc.availability?.timings?.map((shift, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2 text-xs font-bold text-slate-600"
+                  >
+                    <Clock size={14} className="text-primary-500 shrink-0" />
+                    {shift.startTime} - {shift.endTime}
+                  </div>
+                ))}
+                <div className="text-[10px] font-semibold text-slate-400 mt-1 pt-1 border-t border-slate-200">
+                  {doc.availability?.days?.join(", ") || "Mon-Sat"}
+                </div>
+              </div>
 
               <div className="mt-4 space-y-3">
                 <div className="flex items-center gap-3 text-sm text-slate-600 bg-blue-50/50 p-3 rounded-2xl border border-blue-50">
