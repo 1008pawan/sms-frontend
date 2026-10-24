@@ -7,11 +7,9 @@ import {
   Briefcase,
   Loader2,
   AlertCircle,
-  Award,
-  GraduationCap,
   Info,
   Pencil,
-  Trash2,
+  Clock,
 } from "lucide-react";
 import api from "../../../components/Api/PrivateApi";
 import ToggleDoctor from "../../../components/admin/ToggleDoctor";
@@ -34,8 +32,6 @@ export default function AdminDoctorsPage() {
     queryKey: ["admin-doctors"],
     queryFn: async () => {
       const res = await api.get("/admin/doctors");
-      console.log(res.data.data);
-
       return res.data.data;
     },
   });
@@ -58,7 +54,7 @@ export default function AdminDoctorsPage() {
   return (
     <div className="min-h-screen">
       {/* Header Section */}
-      <div className="flex justify-between items-center mb-10">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">
             Doctor Panel
@@ -69,17 +65,17 @@ export default function AdminDoctorsPage() {
         </div>
 
         {/* <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center md:gap-2 md:text-base text-xs md:h-13 h-10 bg-blue-600 hover:bg-blue-700 transition-all cursor-pointer text-white md:px-8 px-2 md:py-4 py-2 rounded-[1.5rem] font-bold shadow-xl shadow-blue-100 active:scale-95"
+          onClick={handleAdd}
+          className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 transition-all cursor-pointer text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-primary-100 active:scale-95"
         >
-          <Plus size={22} />
-          <p>Add New Specialist</p>
+          <Plus size={20} />
+          <span>Add New Specialist</span>
         </button> */}
       </div>
 
       {isLoading ? (
         <div className="flex flex-col justify-center items-center h-64 gap-4">
-          <Loader2 className="animate-spin text-blue-600" size={40} />
+          <Loader2 className="animate-spin text-primary-600" size={40} />
           <p className="text-slate-500 font-bold">
             Fetching Medical Records...
           </p>
@@ -92,7 +88,7 @@ export default function AdminDoctorsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {doctors?.map((doc) => (
             <div
               key={doc._id}
@@ -130,22 +126,23 @@ export default function AdminDoctorsPage() {
                 </div>
 
                 <div className="flex-1 mt-1">
-                  <h2 className="font-black text-xl text-slate-800 leading-tight group-hover:text-blue-600 transition-colors">
+                  <h2 className="font-black text-xl text-slate-800 leading-tight group-hover:text-primary-600 transition-colors">
                     {doc.name}
                   </h2>
+                  <div className="flex items-center gap-1.5 text-primary-500 mt-1">
+                    <span className="text-xs font-bold uppercase tracking-wide">
+                      {doc.specialty || "General Medicine"}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 text-blue-500 mt-4">
-                <span className="text-xs font-bold uppercase tracking-wide">
-                  {doc.specialty || "General Medicine"}
-                </span>
-              </div>
+
               <p className="text-slate-400 text-xs font-bold mt-2 uppercase tracking-tighter">
                 {doc.specialization || "Senior Consultant"}
               </p>
 
-              {/* Timing details add karo */}
-              <div className="flex flex-col gap-2 mt-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              {/* Timing details */}
+              <div className="flex flex-col gap-2 mt-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
                 {doc.availability?.timings?.map((shift, idx) => (
                   <div
                     key={idx}
@@ -161,9 +158,9 @@ export default function AdminDoctorsPage() {
               </div>
 
               <div className="mt-4 space-y-3">
-                <div className="flex items-center gap-3 text-sm text-slate-600 bg-blue-50/50 p-3 rounded-2xl border border-blue-50">
-                  <Briefcase size={18} className="text-blue-500" />
-                  <span className="font-semibold text-xs">
+                <div className="flex items-center gap-3 text-sm text-slate-600 bg-primary-50/50 p-3 rounded-2xl border border-primary-50">
+                  <Briefcase size={18} className="text-primary-500" />
+                  <span className="font-semibold text-xs truncate max-w-[120px]">
                     {doc.department}
                   </span>
                   <span className="ml-auto text-xs bg-white px-2 py-1 rounded-lg shadow-sm text-nowrap">
@@ -188,7 +185,7 @@ export default function AdminDoctorsPage() {
                 )}
               </div>
 
-              <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-50">
+              <div className="flex items-center justify-between mt-6 pt-6 border-t border-slate-100">
                 <div className="flex flex-col">
                   <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
                     Visibility
@@ -198,23 +195,21 @@ export default function AdminDoctorsPage() {
                       doc.isAvailable ? "text-green-600" : "text-red-500"
                     }`}
                   >
-                    {doc.isAvailable ? "Active for Booking" : "On Break"}
+                    {doc.isAvailable ? "Active" : "On Break"}
                   </span>
                 </div>
 
-                <div className="flex gap-2">
+                {/* <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(doc)}
+                    className="p-2.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl transition-colors"
+                    title="Edit Doctor"
+                  >
+                    <Pencil size={16} />
+                  </button>
                   <ToggleDoctor doctor={doc} />
-                </div>
+                </div> */}
               </div>
-
-              {/* <div className="flex gap-2 mt-3">
-                <button
-                  onClick={() => handleEdit(doc)}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600"
-                >
-                  <Pencil size={14} /> Edit
-                </button>
-              </div> */}
             </div>
           ))}
         </div>
