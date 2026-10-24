@@ -75,6 +75,13 @@ export default function AdminDoctorsPage() {
             Manage specialists, their profiles, and availability.
           </p>
         </div>
+
+        {/* <button
+          onClick={handleAdd}
+          className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-colors"
+        >
+          + Add Specialist
+        </button> */}
       </div>
 
       {!isLoading && !isError && (
@@ -234,7 +241,7 @@ export default function AdminDoctorsPage() {
                       Consultation Fee
                     </p>
                     <p className="text-sm font-bold text-slate-700">
-                      ₹{doc.consultationFee || 500}
+                      ₹{doc.consultationFee || 0}
                     </p>
                   </div>
                 </div>
@@ -252,7 +259,7 @@ export default function AdminDoctorsPage() {
                   </span>
                 </div>
 
-                <div
+                {/* <div
                   className="flex items-center gap-2"
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -264,7 +271,7 @@ export default function AdminDoctorsPage() {
                     <Pencil size={16} />
                   </button>
                   <ToggleDoctor doctor={doc} />
-                </div>
+                </div> */}
               </div>
             </div>
           ))}
@@ -279,15 +286,12 @@ export default function AdminDoctorsPage() {
           <h3 className="text-xl font-bold text-slate-700">
             No Specialists Registered
           </h3>
-          <p className="text-slate-400 text-sm mt-1 mb-6">
-            Add your first doctor to get started.
-          </p>
-          <button
+          {/* <button
             onClick={handleAdd}
             className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold rounded-xl transition-colors"
           >
             + Add Specialist
-          </button>
+          </button> */}
         </div>
       )}
 
