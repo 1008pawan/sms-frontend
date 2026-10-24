@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import api from "../Api/PrivateApi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X, Upload, Loader2, Clock } from "lucide-react";
+import { X, Upload, Loader2, Clock, Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const departmentOptions = [
@@ -16,8 +16,8 @@ const departmentOptions = [
   "Psychiatric Department",
   "ENT Department",
   "Pathology Department",
-  "Neurology",
-  "Cardiology",
+  "Neurology Department",
+  "Cardiology Department",
   "Dental Department",
   "General Surgery",
   "Pediatric Surgery",

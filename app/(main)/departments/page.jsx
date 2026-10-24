@@ -222,7 +222,6 @@ export default function PublicDepartmentsPage() {
                         key={doc._id}
                         className="group relative bg-white border border-slate-100 p-5 md:p-6 rounded-[2rem] flex flex-col md:flex-row items-center gap-5 md:gap-6 transition-all duration-300 hover:shadow-xl"
                       >
-                        {/* Image */}
                         <div className="relative shrink-0">
                           <div className="h-28 w-28 md:h-28 md:w-28 rounded-3xl overflow-hidden ring-4 ring-slate-50 shadow-sm">
                             <img
@@ -240,7 +239,6 @@ export default function PublicDepartmentsPage() {
                           </div>
                         </div>
 
-                        {/* Content */}
                         <div className="flex-1 text-center md:text-left space-y-1.5">
                           <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 justify-center md:justify-start">
                             <h3 className="text-xl font-black text-slate-800 tracking-tight">
@@ -263,7 +261,6 @@ export default function PublicDepartmentsPage() {
                               {doc.experience || "0"} Exp.
                             </div>
 
-                            {/* 👇 DYNAMIC TIMINGS */}
                             {doc.availability?.timings?.length > 0 ? (
                               doc.availability.timings.map((shift, idx) => (
                                 <div
@@ -279,10 +276,16 @@ export default function PublicDepartmentsPage() {
                                 <FaClock className="text-blue-500" /> On Call
                               </div>
                             )}
+
+                            {doc.availability?.days?.length > 0 && (
+                              <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border border-emerald-100">
+                                <FaCalendarCheck className="text-emerald-500" />
+                                {doc.availability.days.join(", ")}
+                              </div>
+                            )}
                           </div>
                         </div>
 
-                        {/* 👇 CTA Changed */}
                         <div className="w-full md:w-auto mt-2 md:mt-0">
                           <a
                             href="/login"

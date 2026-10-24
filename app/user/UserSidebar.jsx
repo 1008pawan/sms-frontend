@@ -13,6 +13,7 @@ const menuItems = [
   { name: "Book Appointment", href: "/user/appointment", icon: FiCalendar },
   { name: "Profile", href: "/user/profile", icon: FiUser },
   { name: "Review", href: "/user/review", icon: Star },
+  { name: "My Review", href: "/user/my-reviews", icon: Star },
 ];
 
 const UserSidebar = ({ open = false, onClose = () => {} }) => {

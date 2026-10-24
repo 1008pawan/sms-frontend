@@ -5,8 +5,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../../../components/Api/PrivateApi";
 import toast from "react-hot-toast";
 import { FaStar } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 const Review = () => {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const initialState = {
     name: "",
@@ -25,10 +27,14 @@ const Review = () => {
 
   const mutation = useMutation({
     mutationFn: addReview,
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Review Submitted Successfully!");
-      queryClient.invalidateQueries(["reviews"]);
       setForm(initialState);
+
+      await queryClient.invalidateQueries(["user-reviews"]);
+      await queryClient.invalidateQueries(["reviews"]);
+
+      router.push("/user/my-reviews");
     },
     onError: (error) => {
       toast.error(error?.response?.data?.message || "Something went wrong!");
@@ -128,7 +134,7 @@ const Review = () => {
           <button
             type="submit"
             disabled={mutation.isPending}
-            className={`w-full py-4 rounded-2xl font-bold text-lg shadow-xl transition-all active:scale-95 ${
+            className={`w-full py-4 cursor-pointer rounded-2xl font-bold text-lg shadow-xl transition-all active:scale-95 ${
               mutation.isPending
                 ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                 : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-100"
