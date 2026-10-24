@@ -259,19 +259,19 @@ export default function AdminDoctorsPage() {
                   </span>
                 </div>
 
-                {/* <div
+                <div
                   className="flex items-center gap-2"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <button
+                  {/* <button
                     onClick={(e) => handleEdit(doc, e)}
                     className="p-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-primary-600 rounded-xl transition-all shadow-sm"
                     title="Edit Doctor"
                   >
                     <Pencil size={16} />
-                  </button>
+                  </button> */}
                   <ToggleDoctor doctor={doc} />
-                </div> */}
+                </div>
               </div>
             </div>
           ))}
