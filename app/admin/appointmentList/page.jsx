@@ -4,7 +4,8 @@ import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../../../components/Api/PrivateApi";
 import Swal from "sweetalert2";
-
+import ViewAppointmentModal from "../../../components/admin/ViewAppointmentModal";
+import { Eye } from "lucide-react";
 // ================= ICONS =================
 const Icons = {
   Calendar: () => (
@@ -428,6 +429,7 @@ export default function AdminAppointmentsPage() {
   const itemsPerPage = 10;
 
   const [paymentFilter, setPaymentFilter] = useState("all");
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   // ================= API =================
   const getAllAppointments = async () => {
@@ -975,12 +977,20 @@ export default function AdminAppointmentsPage() {
                           </button>
                         </div>
                       ) : (
+                        // <button
+                        //   onClick={() => deleteAppt(appt._id)}
+                        //   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold rounded-lg transition active:scale-95 whitespace-nowrap"
+                        // >
+                        //   <Icons.Trash />
+                        //   Delete
+                        // </button>
+
                         <button
-                          onClick={() => deleteAppt(appt._id)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold rounded-lg transition active:scale-95 whitespace-nowrap"
+                          onClick={() => setSelectedAppointment(appt)}
+                          className="inline-flex items-center cursor-pointer gap-1.5 px-3 py-1.5 bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 text-xs font-semibold rounded-lg transition active:scale-95 whitespace-nowrap"
                         >
-                          <Icons.Trash />
-                          Delete
+                          <Eye size={14} />
+                          View
                         </button>
                       )}
                     </td>
@@ -1029,6 +1039,13 @@ export default function AdminAppointmentsPage() {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
+          />
+        )}
+
+        {selectedAppointment && (
+          <ViewAppointmentModal
+            appointment={selectedAppointment}
+            onClose={() => setSelectedAppointment(null)}
           />
         )}
       </div>

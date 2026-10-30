@@ -26,9 +26,9 @@ const menuItems = [
     href: "/admin/appointmentList",
     icon: <FaCalendarCheck />,
   },
+  { name: "Doctors", href: "/admin/doctors", icon: <HiUserGroup /> },
   { name: "Carrer", href: "/admin/carrer", icon: <HiBriefcase /> },
   { name: "Reviews", href: "/admin/reviews", icon: <HiStar /> },
-  { name: "Doctors", href: "/admin/doctors", icon: <HiUserGroup /> },
 ];
 
 const AdminSidebar = ({ open = false, onClose = () => {} }) => {

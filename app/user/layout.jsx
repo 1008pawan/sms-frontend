@@ -1,6 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import UserHeader from "./UserHeader";
 import UserSidebar from "./UserSidebar";
 
@@ -16,6 +17,16 @@ export default function MainLayout({ children }) {
     } else {
       setChecked(true);
     }
+
+    // 👇 30 Minutes Auto Logout Timer
+    const SESSION_TIME = 30 * 60 * 1000; // 30 minutes
+    const timer = setTimeout(() => {
+      localStorage.clear();
+      toast.error("Session expired! Please login again.");
+      router.replace("/login");
+    }, SESSION_TIME);
+
+    return () => clearTimeout(timer);
   }, [router]);
 
   if (!checked) {
@@ -33,21 +44,14 @@ export default function MainLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-slate-100">
-      {/* Sidebar */}
-      <UserSidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
-
-      {/* Main content */}
+      <UserSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="md:ml-64 min-h-screen flex flex-col">
         <UserHeader onMenuClick={() => setSidebarOpen(true)} />
-
+          
         <main className="flex-1 p-4 md:p-6">
           <div className="max-w-[1600px] mx-auto">{children}</div>
         </main>
 
-        {/* Footer */}
         <footer className="border-t border-slate-200 bg-white/50 backdrop-blur-sm px-4 md:px-6 py-3">
           <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
             <p>

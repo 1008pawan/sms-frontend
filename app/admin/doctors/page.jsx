@@ -64,6 +64,21 @@ export default function AdminDoctorsPage() {
   const onlineDoctors = doctors.filter((d) => d.isAvailable).length;
   const offlineDoctors = totalDoctors - onlineDoctors;
 
+  const getImageUrl = (photo) => {
+    if (!photo)
+      return "https://cdn-icons-png.flaticon.com/512/3774/3774299.png";
+    if (photo.startsWith("http")) return photo;
+
+    // Agar path galat hai aur "uploads" se start nahi ho raha
+    if (!photo.startsWith("uploads/")) {
+      const idx = photo.indexOf("uploads/");
+      if (idx !== -1) {
+        photo = photo.substring(idx);
+      }
+    }
+    return `${IMG_BASE_URL}/${photo.replace(/^\/+/, "")}`;
+  };
+
   return (
     <div className="min-h-screen pb-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -167,13 +182,7 @@ export default function AdminDoctorsPage() {
               <div className="flex gap-4 items-center mt-2">
                 <div className="h-20 w-20 rounded-2xl overflow-hidden bg-slate-100 border-2 border-white shadow-md shrink-0 group-hover:scale-105 transition-transform relative">
                   <img
-                    src={
-                      doc.photo
-                        ? doc.photo.startsWith("http")
-                          ? doc.photo
-                          : `${IMG_BASE_URL}/${doc.photo.replace(/^\/+/, "")}`
-                        : "https://cdn-icons-png.flaticon.com/512/3774/3774299.png"
-                    }
+                    src={getImageUrl(doc.photo)}
                     onError={(e) => {
                       e.target.src =
                         "https://cdn-icons-png.flaticon.com/512/3774/3774299.png";
@@ -263,13 +272,13 @@ export default function AdminDoctorsPage() {
                   className="flex items-center gap-2"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {/* <button
+                  <button
                     onClick={(e) => handleEdit(doc, e)}
                     className="p-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-primary-600 rounded-xl transition-all shadow-sm"
                     title="Edit Doctor"
                   >
                     <Pencil size={16} />
-                  </button> */}
+                  </button>
                   <ToggleDoctor doctor={doc} />
                 </div>
               </div>

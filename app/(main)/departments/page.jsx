@@ -188,8 +188,8 @@ export default function PublicDepartmentsPage() {
         {/* ===== DOCTORS LIST SECTION ===== */}
         <main className="w-full">
           {activeDept ? (
-            <div className="flex-1 p-4 md:p-10">
-              <div className="mb-6 md:mb-10 text-center md:text-left">
+            <div className="flex-1 p-4 md:p-8 max-w-6xl mx-auto">
+              <div className="mb-6 md:mb-8 text-center md:text-left">
                 <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
                   Our Specialists
                 </h1>
@@ -220,76 +220,166 @@ export default function PublicDepartmentsPage() {
                     .map((doc) => (
                       <div
                         key={doc._id}
-                        className="group relative bg-white border border-slate-100 p-5 md:p-6 rounded-[2rem] flex flex-col md:flex-row items-center gap-5 md:gap-6 transition-all duration-300 hover:shadow-xl"
+                        className="group relative shadow-md bg-white border border-slate-200 rounded-[1.5rem] p-5 flex flex-col md:flex-row gap-5 md:gap-6 transition-all duration-300 hover:shadow-xl hover:border-primary-200"
                       >
-                        <div className="relative shrink-0">
-                          <div className="h-28 w-28 md:h-28 md:w-28 rounded-3xl overflow-hidden ring-4 ring-slate-50 shadow-sm">
+                        <div className="shrink-0 flex justify-center md:block w-28 md:w-32">
+                          <div className="relative h-28 w-28 md:h-32 md:w-32 rounded-2xl overflow-hidden ring-4 ring-slate-50 shadow-sm relative">
                             <img
                               src={getImageUrl(doc.photo)}
                               alt={doc.name}
-                              className="h-full w-full object-cover"
+                              className="h-full w-full object-cover object-top"
                             />
-                          </div>
-                          <div
-                            className={`absolute -bottom-2 -right-2 h-6 w-6 rounded-full border-4 border-white flex items-center justify-center ${
-                              doc.isAvailable ? "bg-green-500" : "bg-red-500"
-                            }`}
-                          >
-                            <div className="h-1.5 w-1.5 bg-white rounded-full animate-pulse"></div>
+
+                            <div
+                              className={`absolute -bottom-0 -right-0 h-7 w-7 rounded-full border-[3px] border-white flex items-center justify-center shadow-md z-10 ${
+                                doc.isAvailable
+                                  ? "bg-emerald-500"
+                                  : "bg-rose-500"
+                              }`}
+                            >
+                              <div className="h-2 w-2 bg-white rounded-full animate-pulse"></div>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex-1 text-center md:text-left space-y-1.5">
-                          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 justify-center md:justify-start">
-                            <h3 className="text-xl font-black text-slate-800 tracking-tight">
+                        <div className="flex-1 flex flex-col text-center md:text-left min-w-0">
+                          <div>
+                            <h3 className="text-xl font-black text-slate-800 leading-tight">
                               {doc.name}
                             </h3>
-                            <span className="hidden md:block text-slate-300">
-                              |
-                            </span>
-                            <span className="text-blue-600 text-xs md:text-sm font-bold uppercase tracking-wider">
-                              {doc.specialization}
-                            </span>
-                          </div>
-                          <p className="text-slate-500 text-sm font-medium">
-                            {doc.specialty}
-                          </p>
+                            <p className="text-blue-600 text-xs font-bold uppercase tracking-wide mt-1">
+                              {doc.specialization || "Specialist"}
+                            </p>
 
-                          <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4 mt-3">
-                            <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border border-slate-100">
-                              <FaUserMd className="text-blue-500" />{" "}
-                              {doc.experience || "0"} Exp.
+                            <p className="text-slate-500 text-[13px] font-medium mt-2 line-clamp-2 leading-relaxed">
+                              {doc.specialty ? `${doc.specialty} • ` : ""}
+                              {doc.department}
+                              {doc.description ? ` • ${doc.description}` : ""}
+                            </p>
+                          </div>
+
+                          <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-3">
+                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
+                              <FaUserMd className="text-slate-400" />{" "}
+                              {doc.experience || "0"} Years Exp.
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
+                              <FaPhoneAlt className="text-slate-400" />{" "}
+                              {doc.phone || "At Hospital"}
+                            </div>
+                          </div>
+
+                          {/* Timings & Availability Grid */}
+                          <div className="mt-4 flex flex-col sm:flex-row gap-4 bg-slate-100 border border-slate-100 rounded-xl p-3">
+                            {/* Timings */}
+                            <div className="flex-1 sm:border-r border-slate-200 sm:pr-4">
+                              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                                Timings
+                              </p>
+                              <div className="grid grid-cols-2 gap-3">
+                                {doc.availability?.timings?.length > 0 ? (
+                                  [...doc.availability.timings]
+                                    .sort((a, b) => {
+                                      // Time ko minutes me convert karke sort karo
+                                      const getMinutes = (timeStr) => {
+                                        const [time, period] =
+                                          timeStr.split(" ");
+                                        let [h, m] = time
+                                          .split(":")
+                                          .map(Number);
+                                        if (period === "PM" && h !== 12)
+                                          h += 12;
+                                        if (period === "AM" && h === 12) h = 0;
+                                        return h * 60 + m;
+                                      };
+                                      return (
+                                        getMinutes(a.startTime) -
+                                        getMinutes(b.startTime)
+                                      );
+                                    })
+                                    .map((shift, idx) => {
+                                      // Sahi label decide karo (12 PM ke baad Evening, subha Morning)
+                                      const hour = parseInt(
+                                        shift.startTime.split(":")[0],
+                                      );
+                                      const isPM =
+                                        shift.startTime.includes("PM");
+                                      const label =
+                                        isPM && hour !== 12
+                                          ? "Evening"
+                                          : "Morning";
+
+                                      return (
+                                        <div
+                                          key={idx}
+                                          className="flex items-start gap-1.5 text-left"
+                                        >
+                                          <FaClock
+                                            className="text-slate-400 mt-0.5 shrink-0"
+                                            size={12}
+                                          />
+                                          <div>
+                                            <p className="text-[11px] font-bold text-slate-700">
+                                              {label}
+                                            </p>
+                                            <p className="text-[10px] font-medium text-slate-500 whitespace-nowrap">
+                                              {shift.startTime} -{" "}
+                                              {shift.endTime}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      );
+                                    })
+                                ) : (
+                                  <p className="text-[11px] font-bold text-slate-500">
+                                    On Call
+                                  </p>
+                                )}
+                              </div>
                             </div>
 
-                            {doc.availability?.timings?.length > 0 ? (
-                              doc.availability.timings.map((shift, idx) => (
-                                <div
-                                  key={idx}
-                                  className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border border-slate-100"
-                                >
-                                  <FaClock className="text-blue-500" />{" "}
-                                  {shift.startTime} - {shift.endTime}
-                                </div>
-                              ))
-                            ) : (
-                              <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border border-slate-100">
-                                <FaClock className="text-blue-500" /> On Call
+                            {/* Availability */}
+                            <div className="flex-1 flex flex-col justify-start">
+                              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                                Availability
+                              </p>
+                              <div className="flex flex-wrap gap-1 justify-center md:justify-start">
+                                {(
+                                  doc.availability?.days || [
+                                    "Mon",
+                                    "Tue",
+                                    "Wed",
+                                    "Thu",
+                                    "Fri",
+                                    "Sat",
+                                  ]
+                                ).map((day) => (
+                                  <span
+                                    key={day}
+                                    className="text-[10px] font-bold bg-white text-emerald-600 px-2 py-0.5 rounded border border-emerald-100 shadow-sm"
+                                  >
+                                    {day}
+                                  </span>
+                                ))}
                               </div>
-                            )}
-
-                            {doc.availability?.days?.length > 0 && (
-                              <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border border-emerald-100">
-                                <FaCalendarCheck className="text-emerald-500" />
-                                {doc.availability.days.join(", ")}
-                              </div>
-                            )}
+                            </div>
                           </div>
                         </div>
 
-                        <div className="w-full md:w-auto mt-2 md:mt-0">
+                        {/* 3. Right: Fee & CTA */}
+                        <div className="w-full md:w-[180px] shrink-0 flex flex-col justify-center items-center gap-3 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-5">
+                          <div className="text-center bg-white border-2 border-slate-800 rounded-xl px-4 py-2 w-full shadow-sm">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-0.5">
+                              Consultation Fee
+                            </p>
+                            <p className="text-2xl font-black text-slate-900">
+                              ₹{doc.consultationFee || 500}
+                            </p>
+                          </div>
+
                           <a
                             href="/login"
-                            className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold rounded-xl md:rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all cursor-pointer shadow-md shadow-blue-500/20 active:scale-95"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-500/20 active:scale-95"
                           >
                             <FaCalendarCheck /> Book Appointment
                           </a>
