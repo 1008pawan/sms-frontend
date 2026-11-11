@@ -1,5 +1,4 @@
 import "./globals.css";
-import Script from "next/script";
 import { Toaster } from "react-hot-toast";
 import QueryProvider from "../app/Providers/QueryProvider";
 import ClientLoader from "./ClientLoader";
@@ -42,12 +41,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-        {/* Razorpay script yaha lagao */}
-        <Script
-          src="https://checkout.razorpay.com/v1/checkout.js"
-          strategy="lazyOnload"
-        />
-
         <QueryProvider>
           <Toaster position="top-right" />
           <ClientLoader>{children}</ClientLoader>

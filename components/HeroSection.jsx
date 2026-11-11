@@ -289,7 +289,7 @@ const HeroSection = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative bg-white rounded-3xl p-6 md:p-8 w-full max-w-sm shadow-2xl overflow-hidden"
+              className="relative bg-white rounded-3xl p-6 md:p-8 h-[90%] overflow-scroll scrollbar-thin w-full max-w-sm shadow-2xl overflow-hidden"
             >
               {/* Top accent */}
               <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 to-red-600" />
@@ -324,7 +324,7 @@ const HeroSection = () => {
               {/* Contact Cards */}
               <div className="space-y-3">
                 <a
-                  href="tel:+919876543210"
+                  href="tel:+916386720220"
                   className="group flex items-center justify-between bg-rose-50 border border-rose-100 p-4 rounded-2xl hover:bg-rose-600 hover:border-rose-600 transition-all active:scale-[0.98]"
                 >
                   <div className="flex items-center gap-3">
@@ -336,7 +336,7 @@ const HeroSection = () => {
                         Ambulance
                       </p>
                       <p className="text-base font-black text-slate-800 group-hover:text-white transition-colors">
-                        +91 98765 43210
+                        +91 6386720220
                       </p>
                     </div>
                   </div>
@@ -345,7 +345,7 @@ const HeroSection = () => {
                 </a>
 
                 <a
-                  href="tel:0112345678"
+                  href="tel:5514074242"
                   className="group flex items-center justify-between bg-slate-50 border border-slate-100 p-4 rounded-2xl hover:bg-slate-900 hover:border-slate-900 transition-all active:scale-[0.98]"
                 >
                   <div className="flex items-center gap-3">
@@ -357,12 +357,42 @@ const HeroSection = () => {
                         Reception
                       </p>
                       <p className="text-base font-black text-slate-800 group-hover:text-white transition-colors">
-                        011-2345678
+                        0551-4074242
                       </p>
                     </div>
                   </div>
 
                   <FaArrowRight className="text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                </a>
+
+                {/* 👇 Naya Map / Location Card */}
+                <a
+                  href="https://maps.google.com/?q=Super+Medical+Speciality+Hospital+Pvt+Ltd+Gorakhpur"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative block mt-3 rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
+                >
+                  {/* Map Iframe */}
+                  <div className="h-32 w-full bg-slate-100 pointer-events-none relative">
+                    <iframe
+                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3561.3780971529477!2d83.3715089145963!3d26.79608707029467!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x399145b0980ccc2d%3A0x832f772d32cada49!2sSuper%20Medical%20Speciality%20Hospital%20Pvt%20Ltd!5e0!3m2!1sen!2sin!4v1792062853754!5m2!1sen!2sin"
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      allowFullScreen=""
+                      loading="lazy"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      title="SMS Hospital Location"
+                      className="grayscale-[20%] group-hover:grayscale-0 transition-all duration-300"
+                    />
+
+                    {/* Overlay Text (Taaki pata chale click karna hai) */}
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-all flex items-end justify-center pb-2 pointer-events-none">
+                      <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold text-slate-800 shadow-sm flex items-center gap-1">
+                        📍 Open in Google Maps
+                      </span>
+                    </div>
+                  </div>
                 </a>
               </div>
 

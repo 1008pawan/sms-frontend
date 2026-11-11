@@ -1,9 +1,10 @@
 "use client";
 import api from "../../../components/Api/PrivateApi";
-import { useQuery } from "@tanstack/react-query";
-import RazorpayButton from "components/Payment/RazorpayButton";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PaymentDetailsModal from "components/PaymentDetailsModal";
 import React, { useState } from "react";
+import { QrCode } from "lucide-react";
+import toast from "react-hot-toast";
 
 const LIMIT = 10;
 
@@ -39,7 +40,10 @@ const Page = () => {
       ? appointments
       : appointments.filter((a) => a.status.toLowerCase() === activeTab);
 
-  const unpaidCount = appointments.filter((a) => !a.payment?.isPaid).length;
+  const unpaidCount = appointments.filter((a) => {
+    const status = a.payment?.status || "not_submitted";
+    return !a.payment?.isPaid && status !== "pending";
+  }).length;
 
   if (isLoading) return <AppointmentsSkeleton />;
   if (error) return <ErrorState />;
@@ -90,7 +94,7 @@ const Page = () => {
             icon={<XIcon />}
           />
           <StatCard
-            label="Unpaid"
+            label="Payment Action Needed"
             value={unpaidCount}
             color="orange"
             icon={<WalletIcon />}
@@ -233,13 +237,16 @@ const Page = () => {
                         <div className="flex items-center gap-2">
                           {/* Pay Now — if unpaid */}
                           {!item.payment?.isPaid &&
+                            item.payment?.status !== "pending" &&
                             !item.payment?.isRefunded && (
                               <PayNowButton appointment={item} />
                             )}
 
-                          {/* Details — if paid OR refunded */}
+                          {/* Details — for any submitted or completed payment */}
                           {(item.payment?.isPaid ||
-                            item.payment?.isRefunded) && (
+                            item.payment?.isRefunded ||
+                            item.payment?.status === "pending" ||
+                            item.payment?.status === "rejected") && (
                             <button
                               onClick={() => {
                                 setSelectedAppointment(item);
@@ -490,32 +497,49 @@ const StatusBadge = ({ status }) => {
 const PaymentBadge = ({ payment }) => {
   const isPaid = payment?.isPaid;
   const isRefunded = payment?.isRefunded;
+  const paymentStatus =
+    payment?.status || (isPaid ? "approved" : "not_submitted");
   const amount = (payment?.amount || 0) / 100;
 
-  if (isRefunded) {
+  if (isRefunded || paymentStatus === "rejected") {
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ring-1 bg-blue-50 text-blue-700 ring-blue-200">
-        <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-        Refunded
+      <span
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ring-1 ${
+          isRefunded
+            ? "bg-blue-50 text-blue-700 ring-blue-200"
+            : "bg-rose-50 text-rose-700 ring-rose-200"
+        }`}
+      >
+        <span
+          className={`w-1.5 h-1.5 rounded-full ${isRefunded ? "bg-blue-500" : "bg-rose-500"}`}
+        />
+        {isRefunded ? "Refunded" : "Payment Rejected"}
       </span>
     );
   }
 
+  const badgeLabel =
+    paymentStatus === "pending"
+      ? "Awaiting Approval"
+      : paymentStatus === "approved" || isPaid
+        ? "Paid"
+        : "Not Submitted";
+  const badgeColor =
+    paymentStatus === "pending"
+      ? "bg-amber-50 text-amber-700 ring-amber-200"
+      : paymentStatus === "approved" || isPaid
+        ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+        : "bg-orange-50 text-orange-700 ring-orange-200";
+
   return (
     <div className="flex flex-col gap-1">
       <span
-        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ring-1 ${
-          isPaid
-            ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-            : "bg-orange-50 text-orange-700 ring-orange-200"
-        }`}
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ring-1 ${badgeColor}`}
       >
         <span
-          className={`w-1.5 h-1.5 rounded-full ${
-            isPaid ? "bg-emerald-500" : "bg-orange-500 animate-pulse"
-          }`}
+          className={`w-1.5 h-1.5 rounded-full ${paymentStatus === "pending" ? "bg-amber-500 animate-pulse" : paymentStatus === "approved" || isPaid ? "bg-emerald-500" : "bg-orange-500"}`}
         />
-        {isPaid ? "Paid" : "Unpaid"}
+        {badgeLabel}
       </span>
       {amount > 0 && (
         <span className="text-xs font-bold text-slate-600 text-center">
@@ -526,9 +550,34 @@ const PaymentBadge = ({ payment }) => {
   );
 };
 
-/* ==================== Pay Now Button ==================== */
+/* ==================== Pay Now Button (QR Code) ==================== */
 const PayNowButton = ({ appointment }) => {
   const [showPay, setShowPay] = useState(false);
+  const [transactionId, setTransactionId] = useState("");
+  const [paidAmount, setPaidAmount] = useState("");
+  const queryClient = useQueryClient();
+  const paymentMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.post("/payment/submit", {
+        appointmentId: appointment._id,
+        transactionId: transactionId.trim(),
+        amount: Number(paidAmount),
+      });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      setShowPay(false);
+      setTransactionId("");
+      setPaidAmount("");
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      toast.success(data.message || "Payment submitted for approval");
+    },
+    onError: (error) => {
+      toast.error(
+        error.response?.data?.message || "Failed to submit payment details",
+      );
+    },
+  });
 
   if (appointment.status?.toLowerCase() === "rejected") {
     return (
@@ -548,26 +597,13 @@ const PayNowButton = ({ appointment }) => {
       {/* Trigger button */}
       <button
         onClick={() => setShowPay(true)}
-        className="group relative inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600 hover:from-indigo-700 hover:via-blue-700 hover:to-indigo-700 text-white text-xs font-bold rounded-lg transition-all shadow-sm hover:shadow-lg hover:shadow-indigo-500/30 active:scale-95 overflow-hidden"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 text-xs font-bold rounded-lg transition active:scale-95"
       >
-        <span className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-        <svg
-          className="w-3.5 h-3.5 relative"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-          />
-        </svg>
-        <span className="relative">Pay Now</span>
+        <QrCode size={14} />
+        Pay Now
       </button>
 
-      {/* Payment Modal */}
+      {/* QR Code Modal */}
       {showPay && (
         <div
           className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4"
@@ -575,225 +611,97 @@ const PayNowButton = ({ appointment }) => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden"
+            className="relative bg-white rounded-3xl shadow-2xl h-[90%] overflow-auto scrollbar-thin max-w-sm w-full p-6 text-center"
           >
-            {/* Gradient Header */}
-            <div className="relative bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 px-6 pt-6 pb-16 text-white overflow-hidden">
-              <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10" />
-              <div className="absolute -bottom-16 -left-10 w-48 h-48 rounded-full bg-white/10" />
+            <button
+              onClick={() => setShowPay(false)}
+              className="absolute top-4 cursor-pointer right-4 text-slate-400 hover:text-slate-600"
+            >
+              ✕
+            </button>
 
-              <button
-                onClick={() => setShowPay(false)}
-                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors backdrop-blur-sm z-10"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+            <h3 className="text-xl font-black text-slate-800 mb-1">
+              Scan to Pay
+            </h3>
+            <p className="text-xs text-slate-500 mb-6">
+              Consultation fee: ₹{fee}. Enter the amount you actually paid.
+            </p>
 
-              <div className="relative">
-                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 shadow-lg">
-                  <svg
-                    className="w-7 h-7"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                    />
-                  </svg>
-                </div>
-
-                <h3 className="text-2xl font-black tracking-tight">
-                  Complete Payment
-                </h3>
-                <p className="text-sm text-indigo-100 mt-1">
-                  Secure payment powered by Razorpay
-                </p>
-              </div>
-            </div>
-
-            {/* Amount Card */}
-            <div className="relative px-6 -mt-12">
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-xl p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                      Amount to Pay
-                    </p>
-                    <p className="text-3xl font-black text-slate-900 mt-1">
-                      ₹{fee.toLocaleString("en-IN")}
-                    </p>
-                  </div>
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                    <svg
-                      className="w-7 h-7 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Appointment Details */}
-            <div className="px-6 py-5">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">
-                Appointment Details
-              </p>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold uppercase text-slate-400">
-                      Patient
-                    </p>
-                    <p className="text-sm font-bold text-slate-800 truncate">
-                      {appointment.patientName}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold uppercase text-slate-400">
-                      Doctor
-                    </p>
-                    <p className="text-sm font-bold text-slate-800 truncate">
-                      Dr.{" "}
-                      {appointment.doctorId?.name?.replace(/^Dr\.?\s*/i, "") ||
-                        "—"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold uppercase text-slate-400">
-                      Date & Slot
-                    </p>
-                    <p className="text-sm font-bold text-slate-800">
-                      {new Date(appointment.appointmentDate).toLocaleDateString(
-                        "en-IN",
-                        {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        },
-                      )}
-                      {appointment.slot && (
-                        <span className="text-slate-500 font-medium">
-                          {" "}
-                          • {appointment.slot}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Pay Button */}
-            <div className="px-6 pb-6">
-              <RazorpayButton
-                appointmentId={appointment._id}
-                patientName={appointment.patientName}
-                amount={appointment?.doctorId?.consultationFee || 500}
-                isPaid={appointment?.payment?.isPaid}
-                isRefunded={appointment?.payment?.isRefunded}
-                onSuccess={() => {
-                  setShowPay(false);
-                  window.location.reload();
-                }}
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 inline-block mb-6">
+              <img
+                src="/images/payment/qr-code.png"
+                alt="Payment QR Code"
+                className="w-56 h-56 object-contain rounded-xl bg-white"
               />
             </div>
 
-            {/* Footer */}
-            <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-medium">
-              <svg
-                className="w-3.5 h-3.5 text-emerald-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
+            <p className="text-xs text-slate-400 mb-4">
+              Scan using GPay, PhonePe, Paytm, or any UPI app.
+            </p>
+
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                paymentMutation.mutate();
+              }}
+              className="space-y-3 text-left"
+            >
+              {appointment.payment?.status === "rejected" && (
+                <p className="text-sm font-semibold text-rose-600">
+                  Previous submission was rejected. Enter the correct
+                  transaction ID to submit it again.
+                </p>
+              )}
+              <label
+                htmlFor={`amount-${appointment._id}`}
+                className="block text-xs font-bold uppercase text-slate-500"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                />
-              </svg>
-              <span>
-                100% Secure Payment • Powered by <b>Razorpay</b>
-              </span>
-            </div>
+                Amount Paid (₹)
+              </label>
+              <input
+                id={`amount-${appointment._id}`}
+                type="number"
+                required
+                min="0.01"
+                step="0.01"
+                value={paidAmount}
+                onChange={(event) => setPaidAmount(event.target.value)}
+                placeholder="Enter the exact amount you paid"
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              />
+              <label
+                htmlFor={`transaction-${appointment._id}`}
+                className="block text-xs font-bold uppercase text-slate-500"
+              >
+                UPI Transaction ID
+              </label>
+              <input
+                id={`transaction-${appointment._id}`}
+                type="text"
+                required
+                maxLength={120}
+                value={transactionId}
+                onChange={(event) => setTransactionId(event.target.value)}
+                placeholder="Enter transaction/reference ID"
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              />
+              <div>
+                <button
+                  type="submit"
+                  disabled={
+                    paymentMutation.isPending ||
+                    !transactionId.trim() ||
+                    !paidAmount ||
+                    Number(paidAmount) <= 0
+                  }
+                  className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {paymentMutation.isPending
+                    ? "Submitting..."
+                    : "Submit for Admin Approval"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

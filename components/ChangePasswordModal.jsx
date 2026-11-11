@@ -1,16 +1,17 @@
 "use client";
-import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import toast from "react-hot-toast";
 import api from "./Api/PrivateApi";
+import { useMutation } from "@tanstack/react-query";
+import { X, Lock, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import toast from "react-hot-toast";
 
-const ChangePasswordModal = ({ isOpen, onClose }) => {
+export default function ChangePasswordModal({ isOpen, onClose }) {
   const [form, setForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
-  const [showPasswords, setShowPasswords] = useState({
+  const [show, setShow] = useState({
     current: false,
     new: false,
     confirm: false,
@@ -21,222 +22,116 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       const res = await api.put("/user/change-password", data);
       return res.data;
     },
-    onSuccess: () => {
-      toast.success("Password changed successfully");
-      resetAndClose();
+    onSuccess: (data) => {
+      toast.success(data.message || "Password updated successfully");
+      setForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      onClose();
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || "Failed to change password");
     },
   });
 
-  const resetAndClose = () => {
-    setForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    setShowPasswords({ current: false, new: false, confirm: false });
-    onClose();
-  };
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const toggleShow = (field) => {
-    setShowPasswords((s) => ({ ...s, [field]: !s[field] }));
-  };
+  if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!form.currentPassword || !form.newPassword || !form.confirmPassword) {
-      return toast.error("All fields are required");
+    // 👇 Check karo ki naya password purane se alag hai
+    if (form.currentPassword === form.newPassword) {
+      return toast.error(
+        "New password must be different from current password",
+      );
     }
-    if (form.newPassword.length < 6) {
-      return toast.error("New password must be at least 6 characters");
-    }
+
     if (form.newPassword !== form.confirmPassword) {
       return toast.error("Passwords do not match");
     }
-    if (form.currentPassword === form.newPassword) {
-      return toast.error("New password must be different from current");
-    }
 
-    mutation.mutate(form);
+    // 👇 Backend ko sirf zaroori fields bhejo
+    mutation.mutate({
+      currentPassword: form.currentPassword,
+      newPassword: form.newPassword,
+    });
   };
 
-  if (!isOpen) return null;
+  const renderInput = (name, placeholder, showKey) => (
+    <div>
+      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+        {placeholder}
+      </label>
+      <div className="relative">
+        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+        <input
+          type={show[showKey] ? "text" : "password"}
+          placeholder={`Enter ${placeholder.toLowerCase()}`}
+          required
+          value={form[name]}
+          onChange={(e) => setForm({ ...form, [name]: e.target.value })}
+          className="w-full pl-11 pr-11 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition text-sm font-medium"
+        />
+        <button
+          type="button"
+          onClick={() => setShow({ ...show, [showKey]: !show[showKey] })}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+        >
+          {show[showKey] ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
+      </div>
+    </div>
+  );
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
-      onClick={resetAndClose}
-    >
-      <div
-        className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 md:p-7 relative animate-in zoom-in-95 duration-200"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close button */}
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 relative animate-in zoom-in-95 duration-200">
+        {/* Close Button */}
         <button
-          onClick={resetAndClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition"
-          aria-label="Close"
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors"
         >
-          <svg
-            className="w-4 h-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2.5}
-          >
-            <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <X size={18} />
         </button>
 
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center">
-            <svg
-              className="w-5 h-5 text-blue-600"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <rect x="3" y="11" width="18" height="11" rx="2" />
-              <path d="M7 11V7a5 5 0 0110 0v4" />
-            </svg>
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-slate-800">
-              Change Password
-            </h2>
-            <p className="text-xs text-slate-500">
-              Apna password securely update karein
-            </p>
-          </div>
+        {/* Header Icon */}
+        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+          <ShieldCheck size={24} />
         </div>
 
-        {/* Form */}
+        <h2 className="text-xl font-black text-slate-800 mb-1">
+          Change Password
+        </h2>
+        <p className="text-xs text-slate-500 mb-6">
+          Ensure your account is secure by updating your password.
+        </p>
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          <PasswordField
-            label="Current Password"
-            name="currentPassword"
-            value={form.currentPassword}
-            onChange={handleChange}
-            show={showPasswords.current}
-            onToggle={() => toggleShow("current")}
-          />
+          {renderInput("currentPassword", "Current Password", "current")}
+          {renderInput("newPassword", "New Password", "new")}
+          {renderInput("confirmPassword", "Confirm New Password", "confirm")}
 
-          <PasswordField
-            label="New Password"
-            name="newPassword"
-            value={form.newPassword}
-            onChange={handleChange}
-            show={showPasswords.new}
-            onToggle={() => toggleShow("new")}
-          />
-
-          <PasswordField
-            label="Confirm New Password"
-            name="confirmPassword"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            show={showPasswords.confirm}
-            onToggle={() => toggleShow("confirm")}
-          />
-
-          {/* Match indicator */}
-          {form.confirmPassword && (
-            <p
-              className={`text-xs font-medium ${
-                form.newPassword === form.confirmPassword
-                  ? "text-emerald-600"
-                  : "text-rose-600"
-              }`}
-            >
-              {form.newPassword === form.confirmPassword
-                ? "✓ Passwords match"
-                : "✗ Passwords do not match"}
+          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 mt-2">
+            <p className="text-[10px] text-slate-500 leading-relaxed font-medium">
+              <b>Password must contain:</b> at least 8 characters, one
+              uppercase, one lowercase, one number, and one special character.
             </p>
-          )}
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-3">
-            <button
-              type="button"
-              onClick={resetAndClose}
-              disabled={mutation.isPending}
-              className="flex-1 py-3 rounded-xl border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50 transition disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              {mutation.isPending ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                "Update Password"
-              )}
-            </button>
           </div>
+
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="w-full mt-2 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/30 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {mutation.isPending ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                Updating...
+              </>
+            ) : (
+              "Update Password"
+            )}
+          </button>
         </form>
       </div>
     </div>
   );
-};
-
-/* ---------- Reusable password field ---------- */
-const PasswordField = ({ label, name, value, onChange, show, onToggle }) => (
-  <div>
-    <label className="block text-xs font-bold uppercase text-slate-500 mb-1.5">
-      {label}
-    </label>
-    <div className="relative">
-      <input
-        type={show ? "text" : "password"}
-        name={name}
-        value={value}
-        onChange={onChange}
-        placeholder="••••••••"
-        className="w-full border border-slate-300 px-4 py-2.5 pr-11 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-      />
-      <button
-        type="button"
-        onClick={onToggle}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition"
-        tabIndex={-1}
-      >
-        {show ? (
-          <svg
-            className="w-4 h-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
-            <path d="M1 1l22 22" />
-          </svg>
-        ) : (
-          <svg
-            className="w-4 h-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-        )}
-      </button>
-    </div>
-  </div>
-);
-
-export default ChangePasswordModal;
+}

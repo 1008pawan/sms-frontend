@@ -266,6 +266,32 @@ export default function AdminDoctorsPage() {
                   >
                     {doc.isAvailable ? "Accepting Bookings" : "Not Accepting"}
                   </span>
+                  {!doc.isAvailable && doc.inactiveUntil && (
+                    <div className="mt-1 space-y-0.5 text-[11px] font-medium text-slate-500">
+                      {doc.inactiveFrom && (
+                        <p>
+                          From:{" "}
+                          {new Date(doc.inactiveFrom).toLocaleString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      )}
+                      <p>
+                        Until:{" "}
+                        {new Date(doc.inactiveUntil).toLocaleString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div

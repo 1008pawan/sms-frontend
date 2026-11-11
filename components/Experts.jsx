@@ -40,11 +40,39 @@ const Experts = () => {
   };
 
   // ================= FILTER =================
+  // const filteredDoctors = doctors.filter((doc) =>
+  //   `${doc.name} ${doc.department} ${doc.specialty} ${doc.specialization}`
+  //     .toLowerCase()
+  //     .includes(search.toLowerCase()),
+  // );
+
+  // ================= FILTER =================
   const filteredDoctors = doctors.filter((doc) =>
     `${doc.name} ${doc.department} ${doc.specialty} ${doc.specialization}`
       .toLowerCase()
       .includes(search.toLowerCase()),
   );
+
+  // 👇 PRIORITY SORT LOGIC (Top Doctors)
+  const priorityNames = [
+    "ram milan",
+    "durgesh shukla",
+    "aashish agrawal",
+    "richa chaudhary",
+    "aquil ahmad",
+    "sumit mishra",
+    "vandita tiwari",
+  ];
+
+  const sortedDoctors = [...filteredDoctors].sort((a, b) => {
+    const getPriority = (docName) => {
+      const name = docName.toLowerCase();
+      const index = priorityNames.findIndex((p) => name.includes(p));
+      return index === -1 ? 999 : index;
+    };
+
+    return getPriority(a.name) - getPriority(b.name);
+  });
 
   const toggleView = () => {
     if (visibleCount >= filteredDoctors.length) {
@@ -123,7 +151,7 @@ const Experts = () => {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               <AnimatePresence>
-                {filteredDoctors.slice(0, visibleCount).map((doc, index) => (
+                {sortedDoctors.slice(0, visibleCount).map((doc, index) => (
                   <motion.div
                     key={doc._id || index}
                     layout

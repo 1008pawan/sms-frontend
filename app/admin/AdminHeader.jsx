@@ -163,7 +163,7 @@ const AdminHeader = ({ onMenuClick }) => {
                 <Link
                   href="/"
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors font-medium"
+                  className="cursor-pointer flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors font-medium"
                 >
                   <FiHome className="text-slate-400 w-4 h-4" />
                   Main Website
@@ -174,7 +174,7 @@ const AdminHeader = ({ onMenuClick }) => {
                     setOpen(false);
                     router.push("/admin/profile");
                   }}
-                  className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors font-medium"
+                  className="cursor-pointer flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors font-medium"
                 >
                   <FiUser className="text-slate-400 w-4 h-4" />
                   My Profile
@@ -184,7 +184,7 @@ const AdminHeader = ({ onMenuClick }) => {
 
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors font-semibold"
+                  className="cursor-pointer flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors font-semibold"
                 >
                   <FiLogOut className="w-4 h-4" />
                   Logout

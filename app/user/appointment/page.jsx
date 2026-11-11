@@ -7,7 +7,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import * as Yup from "yup";
 import Stepper from "components/Stepper";
-import RazorpayButton from "components/Payment/RazorpayButton";
 import {
   FaUserMd,
   FaCalendarAlt,
@@ -94,6 +93,9 @@ const Page = () => {
   const router = useRouter();
   const [doctors, setDoctors] = useState([]);
   const [createdAppointment, setCreatedAppointment] = useState(null);
+  const [transactionId, setTransactionId] = useState("");
+  const [paidAmount, setPaidAmount] = useState("");
+  const [inactiveDoctor, setInactiveDoctor] = useState(null);
 
   const appointments = async (values) => {
     const res = await api.post("/appointment/create", values);
@@ -109,6 +111,31 @@ const Page = () => {
     onError: (error) => {
       toast.error(
         error.response?.data?.message || "Failed to book appointment",
+      );
+    },
+  });
+
+  const paymentMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.post("/payment/submit", {
+        appointmentId: createdAppointment._id,
+        transactionId: transactionId.trim(),
+        amount: Number(paidAmount),
+      });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      setCreatedAppointment((current) => ({
+        ...current,
+        payment: data.data.payment,
+      }));
+      setTransactionId("");
+      setPaidAmount("");
+      toast.success(data.message || "Payment submitted for approval");
+    },
+    onError: (error) => {
+      toast.error(
+        error.response?.data?.message || "Failed to submit payment details",
       );
     },
   });
@@ -173,6 +200,16 @@ const Page = () => {
       ? photo
       : `${IMG_BASE_URL}/${photo.replace(/^\/+/, "")}`;
   };
+
+  const formatAvailabilityDateTime = (date) =>
+    new Date(date).toLocaleString("en-IN", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
   return (
     <div className="w-full">
@@ -268,7 +305,20 @@ const Page = () => {
                 <select
                   name="doctorId"
                   value={appointmentformik.values.doctorId}
-                  onChange={appointmentformik.handleChange}
+                  onChange={(event) => {
+                    const selectedDoctor = doctors.find(
+                      (doctor) => doctor._id === event.target.value,
+                    );
+
+                    if (selectedDoctor && !selectedDoctor.isAvailable) {
+                      appointmentformik.setFieldValue("doctorId", "");
+                      setInactiveDoctor(selectedDoctor);
+                      return;
+                    }
+
+                    setInactiveDoctor(null);
+                    appointmentformik.handleChange(event);
+                  }}
                   onBlur={appointmentformik.handleBlur}
                   disabled={!doctors.length}
                   className={`w-full rounded-xl border px-4 py-3 text-lg focus:ring-2 focus:ring-blue-500 outline-none ${appointmentformik.errors.doctorId && appointmentformik.touched.doctorId ? "border-red-400" : "border-slate-200"}`}
@@ -354,7 +404,7 @@ const Page = () => {
             </form>
           </div>
         ) : (
-          /* ========== STEP 2: REVIEW & PAYMENT SECTION ========== */
+          /* ========== STEP 2: REVIEW & QR PAYMENT SECTION ========== */
           <div className="space-y-6">
             {/* 1. Doctor Card */}
             <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
@@ -423,36 +473,182 @@ const Page = () => {
               </div>
             </div>
 
-            {/* 3. Payment Card */}
+            {/* 3. Manual Payment Card */}
             <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
-              <h2 className="text-xl font-black text-slate-900 mb-2">
-                Confirm your appointment
-              </h2>
-              <p className="text-slate-500 text-sm mb-6">
-                Please complete the payment to confirm your booking.
-              </p>
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-black text-slate-900 mb-2">
+                  Scan & Pay ₹
+                  {createdAppointment?.doctorId?.consultationFee || 500}
+                </h2>
+                <p className="text-slate-500 text-sm">
+                  Scan the QR code below using any UPI app (GPay, PhonePe,
+                  Paytm).
+                </p>
+              </div>
 
-              <div className="md:flex items-center gap-5">
-                <RazorpayButton
-                  appointmentId={createdAppointment._id}
-                  patientName={createdAppointment.patientName}
-                  amount={createdAppointment?.doctorId?.consultationFee || 500}
-                  isPaid={createdAppointment?.payment?.isPaid}
-                  isRefunded={createdAppointment?.payment?.isRefunded}
-                  onSuccess={() => router.push("/user/dashboard")}
-                />
+              <div className="flex flex-col items-center justify-center">
+                <div className="bg-white p-4 border-2 border-slate-200 rounded-2xl shadow-sm mb-6">
+                  <img
+                    src="/images/payment/qr-code.png" // 👈 Apna QR image path yaha daalein
+                    alt="Payment QR Code"
+                    className="w-64 h-64 object-contain"
+                  />
+                </div>
 
-                <button
-                  onClick={() => router.push("/user/dashboard")}
-                  className="w-full mt-4 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
-                >
-                  I'll pay later
-                </button>
+                <div className="w-full max-w-sm space-y-3">
+                  {createdAppointment.payment?.isPaid ||
+                  createdAppointment.payment?.status === "approved" ? (
+                    <div className="rounded-xl bg-emerald-50 p-4 text-center text-sm font-bold text-emerald-700">
+                      Payment approved
+                    </div>
+                  ) : createdAppointment.payment?.status === "pending" ? (
+                    <div className="rounded-xl bg-amber-50 p-4 text-center text-sm font-bold text-amber-700">
+                      Payment submitted. Waiting for admin approval.
+                    </div>
+                  ) : (
+                    <form
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        paymentMutation.mutate();
+                      }}
+                      className="space-y-3"
+                    >
+                      {createdAppointment.payment?.status === "rejected" && (
+                        <p className="text-sm font-semibold text-rose-600">
+                          Previous payment submission was rejected. Please
+                          verify your payment and submit its transaction ID
+                          again.
+                        </p>
+                      )}
+                      <label
+                        htmlFor="paidAmount"
+                        className="block text-left text-xs font-bold uppercase text-slate-500"
+                      >
+                        Amount Paid (₹)
+                      </label>
+                      <input
+                        id="paidAmount"
+                        type="number"
+                        required
+                        min="0.01"
+                        step="0.01"
+                        value={paidAmount}
+                        onChange={(event) => setPaidAmount(event.target.value)}
+                        placeholder="Enter the exact amount you paid"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                      <label
+                        htmlFor="transactionId"
+                        className="block text-left text-xs font-bold uppercase text-slate-500"
+                      >
+                        UPI Transaction ID
+                      </label>
+                      <input
+                        id="transactionId"
+                        type="text"
+                        required
+                        maxLength={120}
+                        value={transactionId}
+                        onChange={(event) =>
+                          setTransactionId(event.target.value)
+                        }
+                        placeholder="Enter the transaction/reference ID"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                      <button
+                        type="submit"
+                        disabled={
+                          paymentMutation.isPending ||
+                          !transactionId.trim() ||
+                          !paidAmount ||
+                          Number(paidAmount) <= 0
+                        }
+                        className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {paymentMutation.isPending
+                          ? "Submitting..."
+                          : "Submit Payment for Approval"}
+                      </button>
+                    </form>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => router.push("/user/dashboard")}
+                    className="w-full py-3 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                  >
+                    Go to dashboard
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {inactiveDoctor && (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+          onClick={() => setInactiveDoctor(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inactive-doctor-title"
+            onClick={(event) => event.stopPropagation()}
+            className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+          >
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+              <FaClock />
+            </div>
+            <h2
+              id="inactive-doctor-title"
+              className="text-xl font-black text-slate-900"
+            >
+              Doctor temporarily unavailable
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {inactiveDoctor.name} is not accepting appointments right now.
+            </p>
+
+            {inactiveDoctor.inactiveFrom && inactiveDoctor.inactiveUntil ? (
+              <div className="mt-5 space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-amber-700">
+                    Inactive from
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-slate-800">
+                    {formatAvailabilityDateTime(inactiveDoctor.inactiveFrom)}
+                  </p>
+                </div>
+                <div className="border-t border-amber-200 pt-3">
+                  <p className="text-xs font-bold uppercase tracking-wide text-amber-700">
+                    Available again from
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-slate-800">
+                    {formatAvailabilityDateTime(inactiveDoctor.inactiveUntil)}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="mt-4 rounded-2xl bg-amber-50 p-4 text-sm text-amber-800">
+                This doctor is inactive. Please select another doctor or try
+                again later.
+              </p>
+            )}
+
+            <p className="mt-4 text-xs text-slate-500">
+              Please choose another available doctor for your appointment.
+            </p>
+            <button
+              type="button"
+              onClick={() => setInactiveDoctor(null)}
+              className="mt-5 w-full rounded-xl bg-blue-600 px-4 py-3 font-bold text-white transition hover:bg-blue-700"
+            >
+              Choose another doctor
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

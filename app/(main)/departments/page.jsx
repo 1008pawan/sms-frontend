@@ -52,10 +52,38 @@ export default function PublicDepartmentsPage() {
     retry: 1,
   });
 
+  const sortedDepartments = useMemo(() => {
+    const priority = [
+      "Neonatology & Pediatrician Department",
+      "General Medicine",
+      "General Surgery",
+      "Gynecology Department",
+      "ENT Department",
+      "Psychiatric Department",
+      "Orthopedic Department",
+    ];
+
+    return [...departments].sort((a, b) => {
+      const indexA = priority.indexOf(a.name);
+      const indexB = priority.indexOf(b.name);
+
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+
+      return a.name.localeCompare(b.name);
+    });
+  }, [departments]);
+
+  // const activeDept = useMemo(() => {
+  //   if (departments.length === 0 || !activeDeptId) return null;
+  //   return departments.find((d) => d.id === activeDeptId);
+  // }, [departments, activeDeptId]);
+
   const activeDept = useMemo(() => {
-    if (departments.length === 0 || !activeDeptId) return null;
-    return departments.find((d) => d.id === activeDeptId);
-  }, [departments, activeDeptId]);
+    if (sortedDepartments.length === 0 || !activeDeptId) return null;
+    return sortedDepartments.find((d) => d.id === activeDeptId); // 👈 sortedDepartments use karo
+  }, [sortedDepartments, activeDeptId]);
 
   const getImageUrl = (photo) => {
     if (!photo)
@@ -85,7 +113,7 @@ export default function PublicDepartmentsPage() {
             className="w-full border border-slate-200 bg-white shadow-sm rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
           >
             <option value="">Select Department</option>
-            {departments.map((dept) => (
+            {sortedDepartments.map((dept) => (
               <option key={dept.id} value={dept.id}>
                 {dept.name} ({dept.doctors.length})
               </option>
@@ -117,8 +145,8 @@ export default function PublicDepartmentsPage() {
                   Specialities
                 </h2>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  {departments.length} Department
-                  {departments.length !== 1 && "s"}
+                  {sortedDepartments.length} Department
+                  {sortedDepartments.length !== 1 && "s"}
                 </p>
               </div>
             </div>
@@ -127,7 +155,7 @@ export default function PublicDepartmentsPage() {
           <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent mx-5 shrink-0" />
 
           <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5 scrollbar-thin">
-            {departments.map((dept) => {
+            {sortedDepartments.map((dept) => {
               const active = activeDept?.id === dept.id;
               return (
                 <button
@@ -210,11 +238,19 @@ export default function PublicDepartmentsPage() {
                 >
                   {[...activeDept.doctors]
                     .sort((a, b) => {
-                      const isARicha = a.name.toLowerCase().includes("richa");
-                      const isBRicha = b.name.toLowerCase().includes("richa");
+                      const nameA = a.name.toLowerCase();
+                      const nameB = b.name.toLowerCase();
 
+                      const isARicha = nameA.includes("richa");
+                      const isBRicha = nameB.includes("richa");
                       if (isARicha && !isBRicha) return -1;
                       if (!isARicha && isBRicha) return 1;
+
+                      const isASumit = nameA.includes("sumit mishra");
+                      const isBSumit = nameB.includes("sumit mishra");
+                      if (isASumit && !isBSumit) return -1;
+                      if (!isASumit && isBSumit) return 1;
+
                       return 0;
                     })
                     .map((doc) => (

@@ -122,10 +122,10 @@ export default function WhyChooseUs() {
 
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <a
-              href="tel:011-2345678"
+              href="tel:05514074242"
               className="flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10 transition"
             >
-              <Phone size={16} /> +011-2345678
+              <Phone size={16} /> 0551-4074242
             </a>
             <a
               href="/login"

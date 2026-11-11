@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   BarChart,
@@ -48,6 +48,16 @@ const PIE_COLORS = [
   "#ec4899",
   "#84cc16",
 ];
+
+const PAYMENT_STATUS_COLORS = {
+  approved: "#10b981",
+  pending: "#f59e0b",
+  rejected: "#ef4444",
+  not_submitted: "#94a3b8",
+};
+
+const getPaymentStatus = (payment) =>
+  payment?.status || (payment?.isPaid ? "approved" : "not_submitted");
 
 const FILTERS = [
   { label: "Today", value: "today" },
@@ -101,7 +111,7 @@ const getDateRange = (filter) => {
   }
 };
 
-export default function Analytics() {
+export default function Analytics({ appointments: appointmentsProp }) {
   const [filter, setFilter] = useState("6m");
 
   /* ============================================================
@@ -111,14 +121,6 @@ export default function Analytics() {
     queryKey: ["analytics-users"],
     queryFn: async () => {
       const res = await api.get("/admin/users");
-      return res.data.data || [];
-    },
-  });
-
-  const { data: appointmentsData, isLoading: appointmentsLoading } = useQuery({
-    queryKey: ["analytics-appointments"],
-    queryFn: async () => {
-      const res = await api.get("/appointment/all");
       return res.data.data || [];
     },
   });
@@ -147,10 +149,10 @@ export default function Analytics() {
     },
   });
 
-  const isLoading = usersLoading || appointmentsLoading || doctorsLoading;
+  const isLoading = usersLoading || doctorsLoading;
 
   const users = usersData || [];
-  const appointments = appointmentsData || [];
+  const appointments = appointmentsProp || [];
   const doctors = doctorsData || [];
   const reviews = reviewsData || [];
   const careers = careersData || [];
@@ -160,35 +162,58 @@ export default function Analytics() {
   ============================================================ */
   const { start, end } = getDateRange(filter);
 
-  const inRange = (dateStr) => {
-    if (!start && !end) return true;
-    if (!dateStr) return true;
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return true;
-    if (start && d < start) return false;
-    if (end && d > end) return false;
-    return true;
-  };
+  const inRange = useCallback(
+    (dateStr) => {
+      if (!start && !end) return true;
+      if (!dateStr) return true;
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return true;
+      if (start && d < start) return false;
+      if (end && d > end) return false;
+      return true;
+    },
+    [start, end],
+  );
 
   const filteredUsers = useMemo(
     () => users.filter((u) => inRange(u.createdAt)),
-    [users, filter],
+    [users, inRange],
   );
   const filteredAppointments = useMemo(
     () => appointments.filter((a) => inRange(a.appointmentDate || a.createdAt)),
-    [appointments, filter],
+    [appointments, inRange],
+  );
+  const filteredPaymentAppointments = useMemo(
+    () =>
+      appointments.filter((appointment) => {
+        const status = getPaymentStatus(appointment.payment);
+        const paymentDate =
+          status === "approved"
+            ? appointment.payment?.paidAt ||
+              appointment.payment?.submittedAt ||
+              appointment.appointmentDate ||
+              appointment.createdAt
+            : status === "pending" || status === "rejected"
+              ? appointment.payment?.submittedAt ||
+                appointment.appointmentDate ||
+                appointment.createdAt
+              : appointment.appointmentDate || appointment.createdAt;
+
+        return inRange(paymentDate);
+      }),
+    [appointments, inRange],
   );
   const filteredDoctors = useMemo(
     () => doctors.filter((d) => inRange(d.createdAt)),
-    [doctors, filter],
+    [doctors, inRange],
   );
   const filteredReviews = useMemo(
     () => reviews.filter((r) => inRange(r.createdAt)),
-    [reviews, filter],
+    [reviews, inRange],
   );
   const filteredCareers = useMemo(
     () => careers.filter((c) => inRange(c.createdAt)),
-    [careers, filter],
+    [careers, inRange],
   );
 
   /* ============================================================
@@ -209,31 +234,40 @@ export default function Analytics() {
   const rejectedAppointments = filteredAppointments.filter(
     (a) => a.status?.toLowerCase() === "rejected",
   ).length;
-  const refundedAppointments = filteredAppointments.filter(
-    (a) => a.payment?.isRefunded,
-  ).length;
-  const paidAppointments = filteredAppointments.filter(
-    (a) => a.payment?.isPaid,
-  ).length;
-  const unpaidAppointments = totalAppointments - paidAppointments;
+  const approvedPaymentAppointments = filteredPaymentAppointments.filter(
+    (a) => getPaymentStatus(a.payment) === "approved",
+  );
+  const pendingPaymentAppointments = filteredPaymentAppointments.filter(
+    (a) => getPaymentStatus(a.payment) === "pending",
+  );
+  const rejectedPaymentAppointments = filteredPaymentAppointments.filter(
+    (a) => getPaymentStatus(a.payment) === "rejected",
+  );
+  const notSubmittedPaymentAppointments = filteredPaymentAppointments.filter(
+    (a) => getPaymentStatus(a.payment) === "not_submitted",
+  );
+  const paidAppointments = approvedPaymentAppointments.length;
+  const pendingPayments = pendingPaymentAppointments.length;
+  const rejectedPayments = rejectedPaymentAppointments.length;
+  const notSubmittedPayments = notSubmittedPaymentAppointments.length;
 
   const totalRevenue =
-    filteredAppointments
-      .filter((a) => a.payment?.isPaid && !a.payment?.isRefunded)
-      .reduce((sum, a) => sum + (a.payment?.amount || 0), 0) / 100;
-
-  const refundedAmount =
-    filteredAppointments
-      .filter((a) => a.payment?.isRefunded)
-      .reduce(
-        (sum, a) => sum + (a.payment?.refundAmount || a.payment?.amount || 0),
-        0,
-      ) / 100;
+    approvedPaymentAppointments.reduce(
+      (sum, a) => sum + (a.payment?.amount || 0),
+      0,
+    ) / 100;
 
   const pendingRevenue =
-    filteredAppointments
-      .filter((a) => !a.payment?.isPaid)
-      .reduce((sum, a) => sum + (a.payment?.amount || 0), 0) / 100;
+    pendingPaymentAppointments.reduce(
+      (sum, a) => sum + (a.payment?.amount || 0),
+      0,
+    ) / 100;
+
+  const rejectedPaymentAmount =
+    rejectedPaymentAppointments.reduce(
+      (sum, a) => sum + (a.payment?.amount || 0),
+      0,
+    ) / 100;
 
   /* ============================================================
      CHART DATA 1: MONTHLY TREND (all entities)
@@ -282,10 +316,17 @@ export default function Analytics() {
       const m = match(a.appointmentDate || a.createdAt);
       if (m) {
         m.appointments += 1;
-        if (a.payment?.isPaid && !a.payment?.isRefunded) {
-          m.revenue += (a.payment?.amount || 0) / 100;
-        }
       }
+    });
+    filteredPaymentAppointments.forEach((a) => {
+      if (getPaymentStatus(a.payment) !== "approved") return;
+      const m = match(
+        a.payment?.paidAt ||
+          a.payment?.submittedAt ||
+          a.appointmentDate ||
+          a.createdAt,
+      );
+      if (m) m.revenue += (a.payment?.amount || 0) / 100;
     });
     filteredDoctors.forEach((d) => {
       const m = match(d.createdAt);
@@ -305,6 +346,7 @@ export default function Analytics() {
     filter,
     filteredUsers,
     filteredAppointments,
+    filteredPaymentAppointments,
     filteredDoctors,
     filteredReviews,
     filteredCareers,
@@ -317,17 +359,23 @@ export default function Analytics() {
     { name: "Pending", value: pendingAppointments },
     { name: "Approved", value: approvedAppointments },
     { name: "Rejected", value: rejectedAppointments },
-    { name: "Refunded", value: refundedAppointments },
   ].filter((d) => d.value > 0);
 
   /* ============================================================
      CHART DATA 3: PAYMENT STATUS PIE
   ============================================================ */
   const paymentPieData = [
-    { name: "Paid", value: paidAppointments - refundedAppointments },
-    { name: "Unpaid", value: unpaidAppointments },
-    { name: "Refunded", value: refundedAppointments },
+    { name: "Approved", value: paidAppointments },
+    { name: "Awaiting Review", value: pendingPayments },
+    { name: "Rejected", value: rejectedPayments },
+    { name: "Not Submitted", value: notSubmittedPayments },
   ].filter((d) => d.value > 0);
+  const paymentPieColors = {
+    Approved: PAYMENT_STATUS_COLORS.approved,
+    "Awaiting Review": PAYMENT_STATUS_COLORS.pending,
+    Rejected: PAYMENT_STATUS_COLORS.rejected,
+    "Not Submitted": PAYMENT_STATUS_COLORS.not_submitted,
+  };
 
   /* ============================================================
      CHART DATA 4: USERS BY GENDER
@@ -532,7 +580,7 @@ export default function Analytics() {
       </div>
 
       {/* ==================== ROW 8: REVENUE SUMMARY ==================== */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <RevenueCard
           label="Total Revenue"
           value={formatINR(totalRevenue)}
@@ -540,16 +588,22 @@ export default function Analytics() {
           color="from-emerald-500 to-teal-500"
         />
         <RevenueCard
-          label="Pending Revenue"
+          label="Awaiting Approval"
           value={formatINR(pendingRevenue)}
-          subtitle="Yet to be collected"
+          subtitle={`${pendingPayments} payment submission${pendingPayments !== 1 ? "s" : ""}`}
           color="from-orange-500 to-amber-500"
         />
         <RevenueCard
-          label="Refunded"
-          value={formatINR(refundedAmount)}
-          subtitle={`${refundedAppointments} appointment${refundedAppointments !== 1 ? "s" : ""}`}
-          color="from-blue-500 to-cyan-500"
+          label="Rejected Payments"
+          value={rejectedPayments}
+          subtitle={`${formatINR(rejectedPaymentAmount)} reported amount`}
+          color="from-rose-500 to-red-500"
+        />
+        <RevenueCard
+          label="Not Submitted"
+          value={notSubmittedPayments}
+          subtitle="Appointments with no payment submission"
+          color="from-slate-500 to-slate-700"
         />
       </div>
 
@@ -634,7 +688,7 @@ export default function Analytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <SectionCard
           title="Appointment Status"
-          subtitle="Pending / Approved / Rejected / Refunded"
+          subtitle="Pending / Approved / Rejected appointments"
         >
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>
@@ -674,9 +728,12 @@ export default function Analytics() {
                 outerRadius={95}
                 label={({ name, value }) => `${name}: ${value}`}
               >
-                <Cell fill={COLORS.emerald} />
-                <Cell fill={COLORS.orange} />
-                <Cell fill={COLORS.blue} />
+                {paymentPieData.map((entry) => (
+                  <Cell
+                    key={entry.name}
+                    fill={paymentPieColors[entry.name]}
+                  />
+                ))}
               </Pie>
               <Tooltip />
               <Legend />

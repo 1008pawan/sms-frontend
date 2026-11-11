@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../../../components/Api/PrivateApi";
 import Swal from "sweetalert2";
 import ViewAppointmentModal from "../../../components/admin/ViewAppointmentModal";
-import { Eye } from "lucide-react";
+import { Check, Eye, X } from "lucide-react";
 // ================= ICONS =================
 const Icons = {
   Calendar: () => (
@@ -270,9 +270,11 @@ const StatusBadge = ({ status }) => {
 };
 
 // ================= PAYMENT BADGE =================
-const PaymentBadge = ({ payment }) => {
+const PaymentBadge = ({ payment, consultationFee }) => {
   const isPaid = payment?.isPaid;
   const isRefunded = payment?.isRefunded;
+  const paymentStatus =
+    payment?.status || (isPaid ? "approved" : "not_submitted");
   const amount = (payment?.amount || 0) / 100;
 
   if (isRefunded) {
@@ -283,29 +285,48 @@ const PaymentBadge = ({ payment }) => {
           Refunded
         </span>
         {amount > 0 && (
-          <span className="text-xs text-center font-semibold text-zinc-600">
-            ₹{amount.toLocaleString("en-IN")}
+          <span className="text-xs text-nowrap text-center font-semibold text-zinc-600">
+            {paymentStatus === "approved" ? "Verified" : "Reported"}: ₹
+            {amount.toLocaleString("en-IN")}
+          </span>
+        )}
+        {paymentStatus !== "not_submitted" && consultationFee > 0 && (
+          <span className="text-[11px] text-center text-zinc-500">
+            Fee: ₹{consultationFee.toLocaleString("en-IN")}
           </span>
         )}
       </div>
     );
   }
 
+  const statusStyles = {
+    approved: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    pending: "bg-amber-50 text-amber-700 ring-amber-600/20",
+    rejected: "bg-rose-50 text-rose-700 ring-rose-600/20",
+    not_submitted: "bg-orange-50 text-orange-700 ring-orange-600/20",
+  };
+  const statusLabels = {
+    approved: "Approved",
+    pending: "Awaiting Review",
+    rejected: "Rejected",
+    not_submitted: "Not Submitted",
+  };
+  const statusDots = {
+    approved: "bg-emerald-500",
+    pending: "bg-amber-500 animate-pulse",
+    rejected: "bg-rose-500",
+    not_submitted: "bg-orange-500",
+  };
+
   return (
     <div className="flex flex-col gap-1">
       <span
-        className={`inline-flex justify-center items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ring-1 ring-inset ${
-          isPaid
-            ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20"
-            : "bg-orange-50 text-orange-700 ring-orange-600/20"
-        }`}
+        className={`inline-flex justify-center items-center text-nowrap gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ring-1 ring-inset ${statusStyles[paymentStatus] || statusStyles.not_submitted}`}
       >
         <span
-          className={`w-1.5 h-1.5 rounded-full ${
-            isPaid ? "bg-emerald-500" : "bg-orange-500 animate-pulse"
-          }`}
+          className={`w-1.5 h-1.5 rounded-full ${statusDots[paymentStatus] || statusDots.not_submitted}`}
         />
-        {isPaid ? "Paid" : "Unpaid"}
+        {statusLabels[paymentStatus] || statusLabels.not_submitted}
       </span>
       {amount > 0 && (
         <span className="text-xs text-center font-semibold text-zinc-600">
@@ -418,6 +439,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   );
 };
 
+const EMPTY_APPOINTMENTS = [];
+
 // ================= MAIN COMPONENT =================
 export default function AdminAppointmentsPage() {
   const queryClient = useQueryClient();
@@ -454,40 +477,25 @@ export default function AdminAppointmentsPage() {
   });
 
   // ================= MUTATIONS =================
-  const { mutate: updateStatusMutation } = useMutation({
+  const { mutateAsync: updateStatusMutation } = useMutation({
     mutationFn: updateAppointmentStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["user-appointments"] });
-    },
-    onError: () => {
-      Swal.fire({
-        icon: "error",
-        title: "Failed!",
-        text: "Failed to update status",
-        confirmButtonColor: "#e11d48",
-      });
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
     },
   });
 
   const updateStatus = async ({ id, status }) => {
     const isApprove = status === "approved";
 
-    // 👇 Agar reject kar rahe hai aur appointment paid hai, to refund bhi pucho
-    const appointment = appointments.find((a) => a._id === id);
-    const isPaid = appointment?.payment?.isPaid;
-    const amount = (appointment?.payment?.amount || 0) / 100;
-
     const result = await Swal.fire({
       title: isApprove ? "Approve Appointment?" : "Reject Appointment?",
       html: isApprove
         ? "The patient will be notified that their appointment is confirmed."
-        : isPaid
-          ? `This appointment is <b>paid (₹${amount})</b>.<br/>Rejecting will <b>refund the amount</b> to the patient.`
-          : "The patient will be notified that their appointment was declined.",
-      icon: isApprove ? "success" : isPaid ? "warning" : "warning",
+        : "The patient will be notified that their appointment was declined.",
+      icon: isApprove ? "success" : "warning",
       showCancelButton: true,
-      confirmButtonText: isApprove ? "Yes, Approve" : "Yes, Reject & Refund",
+      confirmButtonText: isApprove ? "Yes, Approve" : "Yes, Reject",
       cancelButtonText: "Cancel",
       confirmButtonColor: isApprove ? "#059669" : "#e11d48",
       cancelButtonColor: "#6b7280",
@@ -509,22 +517,14 @@ export default function AdminAppointmentsPage() {
     });
 
     try {
-      // 👇 Pehle status update karo
       await updateStatusMutation({ id, status });
-
-      // 👇 Agar reject + paid hai to refund bhi karo
-      if (!isApprove && isPaid) {
-        await api.post("/payment/refund", { appointmentId: id });
-      }
 
       Swal.fire({
         icon: "success",
         title: "Updated!",
         text: isApprove
           ? "Appointment approved successfully."
-          : isPaid
-            ? `Appointment rejected & ₹${amount} refunded.`
-            : "Appointment rejected successfully.",
+          : "Appointment rejected successfully.",
         timer: 1800,
         showConfirmButton: false,
       });
@@ -535,6 +535,60 @@ export default function AdminAppointmentsPage() {
         text:
           error?.response?.data?.message ||
           "Something went wrong while updating",
+        confirmButtonColor: "#e11d48",
+      });
+    }
+  };
+
+  const reviewPayment = async ({ id, status }) => {
+    const isApprove = status === "approved";
+    const appointment = appointments.find((item) => item._id === id);
+    const submittedAmount = (appointment?.payment?.amount || 0) / 100;
+    const consultationFee = appointment?.doctorId?.consultationFee || 500;
+    const transactionId = appointment?.payment?.transactionId || "not provided";
+    const result = await Swal.fire({
+      title: isApprove ? "Approve Payment?" : "Reject Payment?",
+      text: isApprove
+        ? `Verify transaction ${transactionId} in your payment records. Patient reported ₹${submittedAmount.toLocaleString("en-IN")} against the consultation fee of ₹${consultationFee.toLocaleString("en-IN")}. Approving marks it as paid.`
+        : `Reject transaction ${transactionId} (reported amount ₹${submittedAmount.toLocaleString("en-IN")})? The patient can submit corrected payment details.`,
+      icon: isApprove ? "question" : "warning",
+      showCancelButton: true,
+      confirmButtonText: isApprove ? "Approve Payment" : "Reject Payment",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: isApprove ? "#059669" : "#e11d48",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    Swal.fire({
+      title: "Reviewing payment...",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    try {
+      const response = await api.patch(`/payment/${id}/review`, { status });
+      await queryClient.invalidateQueries({
+        queryKey: ["admin-appointments"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      await queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      Swal.fire({
+        icon: "success",
+        title: "Payment reviewed",
+        text: response.data.message || `Payment ${status}`,
+        timer: 1800,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Payment review failed",
+        text:
+          error?.response?.data?.message ||
+          "Something went wrong while reviewing payment",
         confirmButtonColor: "#e11d48",
       });
     }
@@ -598,7 +652,7 @@ export default function AdminAppointmentsPage() {
   };
 
   // ================= DATA =================
-  const appointments = data?.data || [];
+  const appointments = data?.data || EMPTY_APPOINTMENTS;
 
   // ================= STATS =================
   const totalAppointments = appointments.length;
@@ -619,28 +673,18 @@ export default function AdminAppointmentsPage() {
     paidAppointments.reduce((sum, a) => sum + (a.payment?.amount || 0), 0) /
     100;
 
-  // 👇 Pending revenue — unpaid appointments
-  const pendingRevenue =
-    appointments
-      .filter((a) => !a.payment?.isPaid)
-      .reduce((sum, a) => sum + (a.payment?.amount || 0), 0) / 100;
-
-  // 👇 Refunded count + amount
-  const refundedCount = appointments.filter(
-    (a) => a.payment?.isRefunded,
+  const pendingPaymentCount = appointments.filter(
+    (a) => a.payment?.status === "pending",
   ).length;
 
-  const refundedAmount =
+  // Payments awaiting an admin decision
+  const pendingRevenue =
     appointments
-      .filter((a) => a.payment?.isRefunded)
-      .reduce(
-        (sum, a) => sum + (a.payment?.refundAmount || a.payment?.amount || 0),
-        0,
-      ) / 100;
+      .filter((a) => a.payment?.status === "pending")
+      .reduce((sum, a) => sum + (a.payment?.amount || 0), 0) / 100;
 
   // ================= FILTERED DATA =================
-  const filteredAppointments = useMemo(() => {
-    return appointments.filter((appt) => {
+  const filteredAppointments = appointments.filter((appt) => {
       const matchesSearch =
         !searchTerm ||
         appt.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -650,15 +694,15 @@ export default function AdminAppointmentsPage() {
 
       const matchesStatus =
         statusFilter === "all" || appt.status?.toLowerCase() === statusFilter;
+      const paymentStatus =
+        appt.payment?.status ||
+        (appt.payment?.isPaid ? "approved" : "not_submitted");
 
       const matchesPayment =
-        paymentFilter === "all" ||
-        (paymentFilter === "paid" && appt.payment?.isPaid) ||
-        (paymentFilter === "unpaid" && !appt.payment?.isPaid);
+        paymentFilter === "all" || paymentStatus === paymentFilter;
 
       return matchesSearch && matchesStatus && matchesPayment;
-    });
-  }, [appointments, searchTerm, statusFilter, paymentFilter]);
+  });
 
   // Reset page on filter change
   React.useEffect(() => {
@@ -668,10 +712,8 @@ export default function AdminAppointmentsPage() {
   // ================= PAGINATION =================
   const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
 
-  const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredAppointments.slice(start, start + itemsPerPage);
-  }, [filteredAppointments, currentPage]);
+  const start = (currentPage - 1) * itemsPerPage;
+  const paginatedData = filteredAppointments.slice(start, start + itemsPerPage);
 
   // ================= INITIALS =================
   const getInitials = (name) => {
@@ -771,11 +813,11 @@ export default function AdminAppointmentsPage() {
         />
 
         <StatCard
-          title="Refunded"
-          value={refundedCount}
+          title="Payments Awaiting Review"
+          value={pendingPaymentCount}
           icon={<Icons.Wallet />}
-          color="blue"
-          subtitle={`₹${refundedAmount.toLocaleString("en-IN", { maximumFractionDigits: 0 })} refunded`}
+          color="yellow"
+          subtitle={`₹${pendingRevenue.toLocaleString("en-IN", { maximumFractionDigits: 0 })} submitted`}
         />
       </div>
 
@@ -836,8 +878,10 @@ export default function AdminAppointmentsPage() {
                   className="w-full sm:w-40 appearance-none pl-10 pr-8 py-2.5 text-sm font-medium border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition bg-white cursor-pointer"
                 >
                   <option value="all">All Payments</option>
-                  <option value="paid">Paid Only</option>
-                  <option value="unpaid">Unpaid Only</option>
+                  <option value="approved">Approved</option>
+                  <option value="pending">Awaiting Review</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="not_submitted">Not Submitted</option>
                 </select>
               </div>
             </div>
@@ -951,48 +995,86 @@ export default function AdminAppointmentsPage() {
                     </td>
 
                     <td className="px-3 py-4">
-                      <PaymentBadge payment={appt.payment} />
+                      <PaymentBadge
+                        payment={appt.payment}
+                        consultationFee={appt.doctorId?.consultationFee}
+                      />
                     </td>
 
-                    {/* Actions sticky right side */}
-                    <td className="px-3 py-4">
-                      {appt.status?.toLowerCase() === "pending" ? (
-                        <div className="flex items-center gap-2 whitespace-nowrap">
-                          <button
-                            onClick={() =>
-                              updateStatus({ id: appt._id, status: "approved" })
-                            }
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-sm hover:shadow-md active:scale-95"
-                          >
-                            Approve
-                          </button>
+                    {/* Compact appointment and payment actions */}
+                    <td className="px-2 py-2 align-middle">
+                      <div className="mx-auto flex w-full max-w-[180px] flex-wrap items-center justify-center gap-1">
+                        {appt.status?.toLowerCase() === "pending" && (
+                          <>
+                            <button
+                              onClick={() =>
+                                updateStatus({
+                                  id: appt._id,
+                                  status: "approved",
+                                })
+                              }
+                              title="Approve appointment"
+                              aria-label="Approve appointment"
+                              className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm transition hover:bg-emerald-700 active:scale-95"
+                            >
+                              <Check size={14} strokeWidth={2.5} />
+                            </button>
+                            <button
+                              onClick={() =>
+                                updateStatus({
+                                  id: appt._id,
+                                  status: "rejected",
+                                })
+                              }
+                              title="Reject appointment"
+                              aria-label="Reject appointment"
+                              className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-rose-200 bg-white text-rose-600 transition hover:bg-rose-50 active:scale-95"
+                            >
+                              <X size={14} strokeWidth={2.5} />
+                            </button>
+                          </>
+                        )}
 
-                          <button
-                            onClick={() =>
-                              updateStatus({ id: appt._id, status: "rejected" })
-                            }
-                            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition shadow-sm hover:shadow-md active:scale-95"
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      ) : (
-                        // <button
-                        //   onClick={() => deleteAppt(appt._id)}
-                        //   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold rounded-lg transition active:scale-95 whitespace-nowrap"
-                        // >
-                        //   <Icons.Trash />
-                        //   Delete
-                        // </button>
+                        {appt.payment?.status === "pending" && (
+                          <>
+                            <button
+                              onClick={() =>
+                                reviewPayment({
+                                  id: appt._id,
+                                  status: "approved",
+                                })
+                              }
+                              title="Verify and approve payment"
+                              aria-label="Verify and approve payment"
+                              className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+                            >
+                              <Check size={14} strokeWidth={2.5} />
+                            </button>
+                            <button
+                              onClick={() =>
+                                reviewPayment({
+                                  id: appt._id,
+                                  status: "rejected",
+                                })
+                              }
+                              title="Reject payment"
+                              aria-label="Reject payment"
+                              className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-rose-200 bg-white text-rose-600 transition hover:bg-rose-50 active:scale-95"
+                            >
+                              <X size={14} strokeWidth={2.5} />
+                            </button>
+                          </>
+                        )}
 
                         <button
                           onClick={() => setSelectedAppointment(appt)}
-                          className="inline-flex items-center cursor-pointer gap-1.5 px-3 py-1.5 bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 text-xs font-semibold rounded-lg transition active:scale-95 whitespace-nowrap"
+                          title="View appointment details"
+                          aria-label="View appointment details"
+                          className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 active:scale-95"
                         >
-                          <Eye size={14} />
-                          View
+                          <Eye size={14} strokeWidth={2.25} />
                         </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -13,9 +13,22 @@ import {
 export default function ViewAppointmentModal({ appointment, onClose }) {
   if (!appointment) return null;
 
-  const isPaid = appointment.payment?.isPaid;
+  const paymentStatus =
+    appointment.payment?.status ||
+    (appointment.payment?.isPaid ? "approved" : "not_submitted");
+  const isPaid = appointment.payment?.isPaid || paymentStatus === "approved";
   const isRefunded = appointment.payment?.isRefunded;
   const amount = (appointment.payment?.amount || 0) / 100;
+  const consultationFee = appointment.doctorId?.consultationFee;
+  const paymentStatusLabel = isRefunded
+    ? "Refunded"
+    : paymentStatus === "pending"
+      ? "Awaiting Admin Approval"
+      : paymentStatus === "rejected"
+        ? "Rejected"
+        : isPaid
+          ? "Approved"
+          : "Not Submitted";
 
   const getStatusStyle = (status) => {
     const s = status?.toLowerCase();
@@ -154,19 +167,37 @@ export default function ViewAppointmentModal({ appointment, onClose }) {
             <div className="flex justify-between items-end">
               <div>
                 <p
-                  className={`text-sm font-black ${isRefunded ? "text-blue-600" : isPaid ? "text-emerald-600" : "text-rose-500"}`}
+                  className={`text-sm font-black ${isRefunded ? "text-blue-600" : isPaid ? "text-emerald-600" : paymentStatus === "pending" ? "text-amber-600" : paymentStatus === "rejected" ? "text-rose-600" : "text-slate-500"}`}
                 >
-                  {isRefunded ? "Refunded" : isPaid ? "Paid" : "Unpaid"}
+                  {paymentStatusLabel}
                 </p>
-                {isPaid && appointment.payment?.razorpayPaymentId && (
+                {appointment.payment?.transactionId && (
                   <p className="text-[10px] text-slate-400 mt-1 font-mono break-all">
-                    ID: {appointment.payment.razorpayPaymentId}
+                    Transaction ID: {appointment.payment.transactionId}
+                  </p>
+                )}
+                {appointment.payment?.submittedAt && (
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Submitted:{" "}
+                    {new Date(
+                      appointment.payment.submittedAt,
+                    ).toLocaleString("en-IN")}
                   </p>
                 )}
               </div>
-              {amount > 0 && (
-                <p className="text-2xl font-black text-slate-800">₹{amount}</p>
-              )}
+              <div className="text-right">
+                {amount > 0 && (
+                  <p className="text-lg font-black text-slate-800">
+                    Reported: ₹{amount.toLocaleString("en-IN")}
+                  </p>
+                )}
+                {consultationFee > 0 && (
+                  <p className="text-xs font-semibold text-slate-500">
+                    Consultation fee: ₹
+                    {consultationFee.toLocaleString("en-IN")}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>

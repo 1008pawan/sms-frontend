@@ -447,7 +447,7 @@ export default function CareerPage() {
                           }
                         }}
                         onBlur={handleBlur}
-                        placeholder="9876543210"
+                        placeholder="Enter Your Number"
                         maxLength={10}
                         className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none transition ${
                           touched.phoneNumber && errors.phoneNumber

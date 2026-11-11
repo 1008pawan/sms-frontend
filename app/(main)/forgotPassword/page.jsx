@@ -8,27 +8,24 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import {
   FaHeartbeat,
-  FaEnvelope,
+  FaPhoneAlt,
   FaLock,
   FaKey,
   FaArrowLeft,
   FaEye,
-  FaEyeSlash, // 👈 Naya import
+  FaEyeSlash,
 } from "react-icons/fa";
 import * as Yup from "yup";
 import api from "components/Api/PrivateApi";
-import axios from "axios"; // 👈 MISSING THA, YE ZAROORI HAI
 
 const ResetPassword = () => {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState(""); // 👈 email ki jagah phone
   const [showReset, setShowReset] = useState(false);
 
-  // 👇 Password visibility states
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // 👇 Backend ki strict validation
   const validationSchema = Yup.object().shape({
     otp: Yup.string()
       .length(6, "OTP must be exactly 6 digits")
@@ -45,19 +42,19 @@ const ResetPassword = () => {
       .required("Confirm password is required"),
   });
 
-  const API = process.env.NEXT_PUBLIC_API_URL
-    ? `${process.env.NEXT_PUBLIC_API_URL}/otp`
-    : "http://localhost:5000/api/otp";
-
-  // 🔥 SEND OTP
+  // 🔥 SEND OTP (SMS)
   const sendOTPMutation = useMutation({
     mutationFn: async () => {
-      if (!email) throw new Error("Email is required");
-      const { data } = await api.post(`${API}/request-otp`, { email });
+      if (!phone) throw new Error("Phone number is required");
+      if (!/^[0-9]{10}$/.test(phone))
+        throw new Error("Enter a valid 10-digit phone number");
+
+      // 👇 Ab backend ko phone bhej rahe hain
+      const { data } = await api.post(`/otp/request-otp`, { phone });
       return data;
     },
     onSuccess: (data) => {
-      toast.success(data.message || "OTP sent to your email");
+      toast.success(data.message || "OTP sent to your phone");
       setShowReset(true);
     },
     onError: (err) => {
@@ -70,9 +67,10 @@ const ResetPassword = () => {
   // 🔥 VERIFY & RESET
   const verifyOTPMutation = useMutation({
     mutationFn: async ({ otp, password }) => {
-      await axios.post(`${API}/verify-otp`, { email, otp });
-      return axios.post(`${API}/reset-password`, {
-        email,
+      // 👇 Ab phone bhej rahe hain verify ke liye
+      await api.post(`/otp/verify-otp`, { phone, otp });
+      return api.post(`/otp/reset-password`, {
+        phone,
         newPassword: password,
       });
     },
@@ -115,14 +113,14 @@ const ResetPassword = () => {
               </span>
             </h2>
             <p className="text-blue-100/80 leading-relaxed">
-              We'll send a verification OTP to your registered email. Enter it
-              below along with your new password to regain access.
+              We'll send a verification OTP to your registered phone number.
+              Enter it below along with your new password to regain access.
             </p>
 
             <div className="mt-10 space-y-4">
               {[
-                { n: 1, text: "Enter your registered email address" },
-                { n: 2, text: "Check your inbox for the OTP" },
+                { n: 1, text: "Enter your registered phone number" },
+                { n: 2, text: "Check your SMS for the OTP" },
                 { n: 3, text: "Create a new secure password" },
               ].map((step) => (
                 <div key={step.n} className="flex items-start gap-3">
@@ -165,12 +163,12 @@ const ResetPassword = () => {
               </h1>
               <p className="text-slate-500 text-sm mt-1.5 text-center">
                 {showReset
-                  ? "Enter the OTP sent to your email and set a new password."
-                  : "No worries — enter your registered email and we'll send you an OTP."}
+                  ? "Enter the OTP sent to your phone and set a new password."
+                  : "No worries — enter your registered phone number and we'll send you an OTP."}
               </p>
             </div>
 
-            {/* EMAIL FORM */}
+            {/* PHONE FORM */}
             {!showReset && (
               <form
                 onSubmit={(e) => {
@@ -181,16 +179,19 @@ const ResetPassword = () => {
               >
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                    Email Address
+                    Phone Number
                   </label>
                   <div className="relative">
-                    <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                    <FaPhoneAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
                     <input
-                      type="email"
+                      type="tel"
+                      maxLength={10}
                       className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="9876543210"
+                      value={phone}
+                      onChange={(e) =>
+                        setPhone(e.target.value.replace(/\D/g, ""))
+                      }
                       required
                     />
                   </div>
@@ -263,7 +264,7 @@ const ResetPassword = () => {
                       <div className="relative">
                         <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
                         <input
-                          type={showPassword ? "text" : "password"} // 👈 Toggle type
+                          type={showPassword ? "text" : "password"}
                           name="password"
                           placeholder="At least 8 characters"
                           value={values.password}
@@ -274,7 +275,6 @@ const ResetPassword = () => {
                               : "border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                           }`}
                         />
-                        {/* 👇 EYE BUTTON */}
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
@@ -298,7 +298,7 @@ const ResetPassword = () => {
                       <div className="relative">
                         <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
                         <input
-                          type={showConfirmPassword ? "text" : "password"} // 👈 Toggle type
+                          type={showConfirmPassword ? "text" : "password"}
                           name="confirm"
                           placeholder="Re-enter new password"
                           value={values.confirm}
@@ -309,7 +309,6 @@ const ResetPassword = () => {
                               : "border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                           }`}
                         />
-                        {/* 👇 EYE BUTTON */}
                         <button
                           type="button"
                           onClick={() =>

@@ -20,6 +20,7 @@ import { BsShieldCheck } from "react-icons/bs";
 import Header from "components/Header";
 import Footer from "components/Footer";
 
+// const WHATSAPP_NUMBER = "6307730544";
 const WHATSAPP_NUMBER = "7905040626";
 
 const CONTACT_INFO = [
@@ -34,7 +35,7 @@ const CONTACT_INFO = [
   {
     icon: FaPhoneAlt,
     label: "Call Us",
-    value: "+91 630 773 0544",
+    value: "0551-4074242",
     extra: "+91 638 672 0220",
     color: "from-emerald-500 to-teal-600",
     href: "tel:+916307730544",
@@ -42,14 +43,14 @@ const CONTACT_INFO = [
   {
     icon: FaEnvelope,
     label: "Email Us",
-    value: "info@smshospital.com",
+    value: "smshospitalgkp@gmail.com",
     color: "from-violet-500 to-purple-600",
     href: "mailto:info@smshospital.com",
   },
   {
     icon: FaClock,
     label: "Working Hours",
-    value: "Mon - Sat: 9:00 AM - 9:00 PM",
+    value: "OPD Hours Everyday : 9:00 AM - 9:00 PM",
     extra: "Emergency: 24/7 Available",
     color: "from-amber-500 to-orange-600",
   },
@@ -168,11 +169,11 @@ export default function ContactPage() {
       setLoading(true);
 
       // 📱 WhatsApp message compose
-      const waMessage = `🏥 *New Contact Enquiry — SMS Hospital*
+      const waMessage = `🏥 *New Contact Enquiry — SMS Hospital Pvt Ltd.*
 
-👤 *Name:* ${formData.name}
-📞 *Phone:* ${formData.phone}
-${formData.email ? `✉️ *Email:* ${formData.email}\n` : ""}${
+      👤 *Name:* ${formData.name}
+      📞 *Phone:* ${formData.phone}
+      ${formData.email ? `✉️ *Email:* ${formData.email}\n` : ""}${
         formData.subject
           ? `📋 *Subject:* ${
               {
@@ -184,9 +185,9 @@ ${formData.email ? `✉️ *Email:* ${formData.email}\n` : ""}${
               }[formData.subject] || formData.subject
             }\n`
           : ""
-      }
-💬 *Message:*
-${formData.message}`;
+            }
+      💬 *Message:*
+      ${formData.message}`;
 
       const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
         waMessage,
@@ -252,14 +253,14 @@ ${formData.message}`;
           <div className="absolute bottom-0 -right-40 w-96 h-96 rounded-full bg-indigo-500/20 blur-3xl" />
 
           <div className="relative max-w-7xl mx-auto px-4 text-center">
-            <motion.span
+            {/* <motion.span
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-xs font-bold uppercase tracking-widest"
             >
               <FaCommentDots className="text-blue-300" />
               Get In Touch
-            </motion.span>
+            </motion.span> */}
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -372,7 +373,7 @@ ${formData.message}`;
                         value={formData.name}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        placeholder="John Doe"
+                        placeholder="Enter your Name"
                         className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none transition ${
                           touched.name && errors.name
                             ? "border-rose-300 bg-rose-50/30 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20"

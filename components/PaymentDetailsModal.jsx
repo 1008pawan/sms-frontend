@@ -16,7 +16,9 @@ export default function PaymentDetailsModal({ open, onClose, appointment }) {
   if (!open || !appointment) return null;
 
   const payment = appointment.payment || {};
-  const isPaid = payment.isPaid;
+  const paymentStatus =
+    payment.status || (payment.isPaid ? "approved" : "not_submitted");
+  const isPaid = payment.isPaid || paymentStatus === "approved";
   const isRefunded = payment.isRefunded;
   const amount = (payment.amount || 0) / 100;
   const refundAmount = (payment.refundAmount || payment.amount || 0) / 100;
@@ -46,8 +48,24 @@ export default function PaymentDetailsModal({ open, onClose, appointment }) {
           textColor: "text-emerald-600",
           bg: "bg-emerald-50",
         }
+      : paymentStatus === "pending"
+      ? {
+          label: "Awaiting Approval",
+          icon: <Clock className="w-5 h-5" />,
+          gradient: "from-amber-500 to-orange-500",
+          textColor: "text-amber-700",
+          bg: "bg-amber-50",
+        }
+      : paymentStatus === "rejected"
+      ? {
+          label: "Rejected",
+          icon: <X className="w-5 h-5" />,
+          gradient: "from-rose-500 to-red-500",
+          textColor: "text-rose-600",
+          bg: "bg-rose-50",
+        }
       : {
-          label: "Unpaid",
+          label: "Not Submitted",
           icon: <Clock className="w-5 h-5" />,
           gradient: "from-orange-500 to-amber-500",
           textColor: "text-orange-600",
@@ -96,13 +114,21 @@ export default function PaymentDetailsModal({ open, onClose, appointment }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                  {isRefunded ? "Refunded Amount" : "Amount Paid"}
+                  {isRefunded
+                    ? "Refunded Amount"
+                    : isPaid
+                      ? "Amount Paid"
+                      : "Amount Reported"}
                 </p>
                 <p className="text-3xl font-black text-slate-900 mt-1">
                   ₹
                   {(isRefunded ? refundAmount : amount).toLocaleString("en-IN")}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">Consultation Fee</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {appointment.doctorId?.consultationFee
+                    ? `Consultation fee: ₹${appointment.doctorId.consultationFee.toLocaleString("en-IN")}`
+                    : "Amount reported by you"}
+                </p>
               </div>
               <div
                 className={`px-3 py-1.5 rounded-full text-xs font-bold ${statusConfig.bg} ${statusConfig.textColor} inline-flex items-center gap-1.5`}
@@ -125,30 +151,34 @@ export default function PaymentDetailsModal({ open, onClose, appointment }) {
           </p>
 
           <div className="space-y-2.5">
-            {payment.razorpayPaymentId && (
+            {payment.transactionId && (
               <DetailRow
-                label="Payment ID"
-                value={payment.razorpayPaymentId}
-                icon="💳"
+                label="Transaction ID"
+                value={payment.transactionId}
+                icon="🔖"
                 onCopy={() =>
-                  copyToClipboard(payment.razorpayPaymentId, "payment")
+                  copyToClipboard(payment.transactionId, "transaction")
                 }
-                copied={copiedField === "payment"}
-              />
-            )}
-
-            {payment.razorpayOrderId && (
-              <DetailRow
-                label="Order ID"
-                value={payment.razorpayOrderId}
-                icon="📋"
-                onCopy={() => copyToClipboard(payment.razorpayOrderId, "order")}
-                copied={copiedField === "order"}
+                copied={copiedField === "transaction"}
               />
             )}
 
             {payment.currency && (
               <DetailRow label="Currency" value={payment.currency} icon="🌐" />
+            )}
+
+            {payment.submittedAt && (
+              <DetailRow
+                label="Submitted On"
+                value={new Date(payment.submittedAt).toLocaleString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+                icon="📤"
+              />
             )}
 
             {payment.paidAt && (
@@ -165,11 +195,33 @@ export default function PaymentDetailsModal({ open, onClose, appointment }) {
               />
             )}
 
-            {!isPaid && (
+            {payment.reviewedAt && (
+              <DetailRow
+                label="Reviewed On"
+                value={new Date(payment.reviewedAt).toLocaleString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+                icon="✅"
+              />
+            )}
+
+            {paymentStatus === "pending" && (
               <DetailRow
                 label="Status"
-                value="Payment pending — not completed yet"
+                value="Payment submitted and waiting for admin approval"
                 icon="⏳"
+              />
+            )}
+
+            {paymentStatus === "rejected" && (
+              <DetailRow
+                label="Status"
+                value="Payment was rejected. You can submit a new transaction ID."
+                icon="⚠️"
               />
             )}
           </div>
@@ -226,11 +278,13 @@ export default function PaymentDetailsModal({ open, onClose, appointment }) {
           )}
 
           {/* Unpaid info */}
-          {!isPaid && (
+          {!isPaid && paymentStatus !== "pending" && (
             <div className="mt-4 p-3 rounded-xl bg-amber-50 border border-amber-100">
               <p className="text-xs text-amber-700 leading-relaxed">
-                <b>Note:</b> This appointment hasn't been paid for yet. Complete
-                the payment to confirm your booking.
+                <b>Note:</b>{" "}
+                {paymentStatus === "rejected"
+                  ? "Your payment was rejected. Please verify the transaction details and submit again."
+                  : "No payment has been submitted yet. Pay using the hospital QR code and submit your transaction ID."}
               </p>
             </div>
           )}
